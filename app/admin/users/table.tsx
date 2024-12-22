@@ -63,7 +63,7 @@ const UserTable = ({ users }: { users: Array<User> }) => {
     {
       columns,
       data,
-    },
+    } as any,
     useGlobalFilter
   );
 

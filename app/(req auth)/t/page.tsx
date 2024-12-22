@@ -22,5 +22,5 @@ export default async function Test({ searchParams }: {
     } else {
         testId = await newRandomTest(userId)
     }
-    redirect(`/test/${testId}`)
+    redirect(`/t/${testId}`)
 }
