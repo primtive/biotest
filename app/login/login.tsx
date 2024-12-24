@@ -29,9 +29,7 @@ import { PasswordInput } from "@/components/password-input"
 
 const formSchema = z.object({
   username: z
-    .string({ message: 'Введите имя пользователя' }),
-  password: z
-    .string({ message: 'Введите пароль' })
+    .string({ message: 'Введите имя пользователя' })
 })
 
 export default function LoginForm() {
@@ -39,18 +37,16 @@ export default function LoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   })
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     const res = await signIn("credentials", {
       callbackUrl: '/',
       redirect: false,
-      username: values.username,
-      password: values.password
+      username: values.username
     });
     setLoading(false);
     if (res?.error) {
-      form.setError("password", {
+      form.setError("username", {
         type: "manual",
         message: res?.error,
       })
@@ -83,27 +79,15 @@ export default function LoginForm() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    <div className="flex items-center">
-                      <Label htmlFor="password">Пароль</Label>
-                    </div>
-                  </FormLabel>
-                  <FormControl>
-                    <PasswordInput {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <Button type="submit" disabled={loading} className="w-full">Вход</Button>
           </form>
         </Form>
       </CardContent>
+      <CardFooter>
+        <p className="text-sm">
+          Если вы забыли имя пользователя, напишите <a href="https://t.me/alariklorens" className="font-semibold">@alariklorens</a>
+        </p>
+      </CardFooter>
     </Card>
   )
 }

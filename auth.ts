@@ -1,7 +1,20 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 // import { compare } from 'bcrypt';
 import prisma from "@/data/prisma";
-import { AuthOptions } from "next-auth";
+import { AuthOptions, Session } from "next-auth";
+
+declare module "next-auth" {
+  interface User {
+    id: string
+    name: string,
+    username: string,
+    admin: boolean
+  }
+
+  interface Session {
+    user?: User;
+  }
+}
 
 const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET as string,
@@ -15,7 +28,6 @@ const authOptions: AuthOptions = {
     CredentialsProvider({
       credentials: {
         username: {},
-        password: {},
       },
       async authorize(credentials, req) {
         if (!credentials) throw new Error("no credentials")
@@ -25,16 +37,7 @@ const authOptions: AuthOptions = {
           }
         });
         if (user) {
-          const passwordCorrect = credentials!.password == user.password;
-          if (passwordCorrect) {
-            return {
-              id: user.id,
-              name: user.name,
-              username: user.username,
-            };
-          } else {
-            throw new Error("Неверный пароль")
-          }
+          return user
         } else {
           throw new Error("Пользователь не найден");
         }
@@ -42,11 +45,16 @@ const authOptions: AuthOptions = {
     })
   ],
   callbacks: {
-    async session({ session, token, user }) {
-      // console.log(session);
-      return session
+    async session({ session, token }) {
+      const user = await prisma.user.findFirst({
+        where: {
+          id: token.sub
+        }
+      })
+      const _session = user ? { ...session, user: user } : undefined;
+      return _session as Session;
     },
-    async jwt({ token, user, account, profile, isNewUser }) {
+    async jwt({ token, user }) {
       // console.log("jwt: ", {token, user});
       token.id = user?.id
       return token

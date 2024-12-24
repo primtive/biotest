@@ -1,6 +1,7 @@
 "use client"
-import React, { useMemo, useState } from "react";
+import React, { ReactNode, useMemo, useState } from "react";
 import { useTable, useGlobalFilter } from "react-table";
+import { Lock, Pencil, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -11,10 +12,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Card } from "@/components/ui/card";
 import User from "@/data/models/user";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog"
+import { UserEdit } from "./user-edit";
+import { cn } from "@/lib/utils";
 
 const GlobalFilter = ({ globalFilter, setGlobalFilter }: any) => {
   return (
@@ -28,28 +43,100 @@ const GlobalFilter = ({ globalFilter, setGlobalFilter }: any) => {
   );
 };
 
-const UserTable = ({ users }: { users: Array<User> }) => {
+const UserTable = (data: { users: Array<User> }) => {
   const [globalFilter, setGlobalFilter] = useState("");
+  const [users, setUsers] = useState<Array<User>>(data.users);
+
+  function onUserSave(values: { id?: string, name: string, username: string }) {
+    if (values.id) {
+      fetch(`/api/users/${values.id}`, {
+        method: 'POST',
+        body: JSON.stringify(values)
+      })
+      const userIndex = users.findIndex(u => u.id == values.id!)
+      if (userIndex !== -1) {
+        const newUsers = [...users];
+        newUsers[userIndex] = { ...users[userIndex], ...values };
+        setUsers(newUsers);
+      }
+    } else {
+      fetch(`/api/users/new`, {
+        method: 'POST',
+        body: JSON.stringify(values)
+      }).then(x => x.json()).then(res => {
+        setUsers([...users, { ...values, id: res.id }]);
+      })
+    }
+  }
+
+  function deleteUser(id: string) {
+    fetch(`/api/users/${id}`, {
+      method: 'DELETE'
+    })
+    setUsers([...users].filter(u => u.id != id));
+  }
 
   const columns = useMemo(
     () => [
-      {
-        Header: "Имя",
-        accessor: "name",
-      },
       {
         Header: "Имя пользователя",
         accessor: "username",
       },
       {
-        Header: "Пароль",
-        accessor: "password",
+        Header: "Имя",
+        accessor: "name",
       },
+      {
+        accessor: "admin",
+        Cell: ({ row }: any) => (
+          row.values.admin && <Lock className="text-muted-foreground w-5 h-5" />
+        ),
+      },
+      // {
+      // accessor: (row: any) => <p>{row.id}</p>,
+      // id: 'd'
+      // },
+      {
+        accessor: "id",
+        Cell: ({ row }: any) => (
+          row.values.admin
+            ?
+            <Pencil className="text-muted-foreground w-5 h-5" />
+            :
+            <UserEdit el={<Pencil className="w-5 h-5" />} data={row.values} id={row.values.id} onSave={onUserSave} />
+        ),
+      },
+      {
+        accessor: (row: any) => (
+          row.admin
+            ?
+            <Trash2 className="text-muted-foreground w-5 h-5" />
+            :
+            <AlertDialog>
+              <AlertDialogTrigger className="cursor-pointer" asChild>
+                <Trash2 className="w-5 h-5" />
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Удалить пользователя?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Все данные о прохождении тестов будут удалены
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => deleteUser(row.id)}>Удалить</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+        ),
+        id: 'delete'
+      }
     ],
     []
   );
 
-  const data = useMemo(() => users, [users]);
+  // const data = useMemo(() => users, [users]);
 
   const {
     getTableProps,
@@ -62,18 +149,17 @@ const UserTable = ({ users }: { users: Array<User> }) => {
   } = useTable(
     {
       columns,
-      data,
+      data: users
     } as any,
     useGlobalFilter
   );
 
-  // Sync state with the external search box
   React.useEffect(() => {
     setFilter(globalFilter);
   }, [globalFilter, setFilter]);
 
   return (
-    <Card>
+    <Card className="w-max max-w-fit">
       <GlobalFilter globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
       <Table {...getTableProps()}>
         <TableHeader>
@@ -81,8 +167,8 @@ const UserTable = ({ users }: { users: Array<User> }) => {
             const { key, props } = headerGroup.getHeaderGroupProps();
             return <TableRow key={key} {...props}>
               {headerGroup.headers.map((column: any, j: number) => {
-                const { key_, props_ } = column.getHeaderProps();
-                return <TableHead key={key_} {...props_}>
+                const { key, props } = column.getHeaderProps();
+                return <TableHead key={key} {...props}>
                   {column.render("Header")}
                 </TableHead>
               })}
@@ -95,19 +181,20 @@ const UserTable = ({ users }: { users: Array<User> }) => {
             const { key, props } = row.getRowProps();
             return (
               <TableRow key={key} {...props}>
-                {row.cells.map((cell: any, j: number) => (
-                  <TableCell key={j} {...cell.getCellProps()}>
+                {row.cells.map((cell: any, j: number) => {
+                  const { key_, props } = cell.getCellProps();
+                  return <TableCell key={key_} {...props}>
                     {cell.render("Cell")}
                   </TableCell>
-                ))}
+                })}
               </TableRow>
             );
           })}
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={3}>
-              <Button className="w-full">Создать</Button>
+            <TableCell colSpan={5}>
+              <UserEdit className="w-full" el={<a className={cn("w-full", buttonVariants({variant: "default"}))}>Создать</a>} data={{}} onSave={onUserSave} />
             </TableCell>
           </TableRow>
         </TableFooter>

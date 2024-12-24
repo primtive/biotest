@@ -16,7 +16,7 @@ const FormSchema = z.object({
   }),
 })
 
-export default function Index({ topics }: { topics: Array<{ name: string, id: string }> }) {
+export default function Home({ topics }: { topics: Array<{ name: string, id: string }> }) {
   const [mode, setMode] = React.useState(false);
   const router = useRouter()
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -31,7 +31,7 @@ export default function Index({ topics }: { topics: Array<{ name: string, id: st
     if (!mode) router.push('/t')
     const isSelected = await form.trigger('items')
     if (isSelected) {
-      router.push('/t?topics='+form.getValues().items.join(','))
+      router.push('/t?topics=' + form.getValues().items.join(','))
     }
   }
 
@@ -60,12 +60,13 @@ export default function Index({ topics }: { topics: Array<{ name: string, id: st
           <p>Темы</p>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(start)}>
-              <Table>
-                <TableBody>
-                  <FormField
-                    control={form.control}
-                    name="items"
-                    render={() => (
+
+              <FormField
+                control={form.control}
+                name="items"
+                render={() => (
+                  <Table>
+                    <TableBody>
                       <FormItem>
                         {topics.map((item) => (
                           <FormField
@@ -76,8 +77,8 @@ export default function Index({ topics }: { topics: Array<{ name: string, id: st
                               return (
                                 // <FormControl>
                                 <TableRow>
-                                  <TableCell className="flex items-center">
-                                    <FormItem key={item.id}>
+                                  <TableCell className="flex items-stretch">
+                                    {/* <FormItem key={item.id}> */}
                                       <Checkbox
                                         checked={field.value?.includes(item.id)}
                                         onCheckedChange={(checked) => {
@@ -93,7 +94,8 @@ export default function Index({ topics }: { topics: Array<{ name: string, id: st
                                       <FormLabel className="text-md ml-2">
                                         {item.name}
                                       </FormLabel>
-                                    </FormItem>
+                                    {/* </FormItem> */}
+
                                   </TableCell>
                                 </TableRow>
                                 // </FormControl>
@@ -103,10 +105,10 @@ export default function Index({ topics }: { topics: Array<{ name: string, id: st
                         ))}
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-                </TableBody>
-              </Table>
+                    </TableBody>
+                  </Table>
+                )}
+              />
             </form>
           </Form>
         </Card>}
