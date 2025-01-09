@@ -197,7 +197,7 @@ const UserTable = (data: { users: Array<User> }) => {
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={5}>
+            <TableCell colSpan={7}>
               <UserEdit className="w-full" el={<a className={cn("w-full", buttonVariants({variant: "default"}))}>Создать</a>} data={{}} onSave={onUserSave} />
             </TableCell>
           </TableRow>

@@ -16,6 +16,9 @@ export const getLeaderboard: () => Promise<any> = async () => {
   const users = await prisma.user.aggregateRaw({
     pipeline: [
       {
+        $match: { admin: false }
+      },
+      {
         $sort: { score: -1 }
       }
     ]
