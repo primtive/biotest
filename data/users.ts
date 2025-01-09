@@ -1,4 +1,5 @@
 import prisma from "@/data/prisma";
+import { JsonObject } from "@prisma/client/runtime/library";
 
 export const getUsers = async () => {
   const users = await prisma.user.findMany({
@@ -9,4 +10,15 @@ export const getUsers = async () => {
     // }
   })
   return users
+}
+
+export const getLeaderboard: () => Promise<any> = async () => {
+  const users = await prisma.user.aggregateRaw({
+    pipeline: [
+      {
+        $sort: { score: -1 }
+      }
+    ]
+  })
+  return users || []
 }

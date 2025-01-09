@@ -1,9 +1,9 @@
 import * as React from 'react';
-import UserTable from './table';
+import UserTable from './users-table';
 import { getUsers } from '@/data/users';
 
 export const metadata = {
-  title: 'Список пользователей',
+  title: 'Пользователи',
 };
 
 export default async function UsersPage() {

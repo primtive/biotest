@@ -1,7 +1,7 @@
 "use client"
 import React, { ReactNode, useMemo, useState } from "react";
 import { useTable, useGlobalFilter } from "react-table";
-import { Lock, Pencil, Trash2 } from "lucide-react";
+import { CheckCircle, Lock, Pencil, PercentCircle, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -87,15 +87,19 @@ const UserTable = (data: { users: Array<User> }) => {
         accessor: "name",
       },
       {
+        Header: () => <CheckCircle className="h-4 w-4" />,
+        accessor: "score"
+      },
+      {
+        Header: () => <PercentCircle className="h-4 w-4" />,
+        accessor: "percent"
+      },
+      {
         accessor: "admin",
         Cell: ({ row }: any) => (
           row.values.admin && <Lock className="text-muted-foreground w-5 h-5" />
         ),
       },
-      // {
-      // accessor: (row: any) => <p>{row.id}</p>,
-      // id: 'd'
-      // },
       {
         accessor: "id",
         Cell: ({ row }: any) => (

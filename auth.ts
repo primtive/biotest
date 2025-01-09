@@ -8,7 +8,10 @@ declare module "next-auth" {
     id: string
     name: string,
     username: string,
-    admin: boolean
+    admin: boolean,
+    score: number,
+    streak: number,
+    percent: number
   }
 
   interface Session {
@@ -51,7 +54,10 @@ const authOptions: AuthOptions = {
           id: token.sub
         }
       })
-      const _session = user ? { ...session, user: user } : undefined;
+
+      const _session = user ? {
+        ...session, user
+      } : undefined;
       return _session as Session;
     },
     async jwt({ token, user }) {

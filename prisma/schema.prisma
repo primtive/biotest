@@ -14,13 +14,18 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt  DateTime @default(now())
-  lastAccess DateTime @default(now())
-  username   String   @unique
-  name       String   @unique
-  admin      Boolean  @default(false)
-  tests      Test[]
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt        DateTime  @default(now())
+  lastAccess       DateTime  @default(now())
+  username         String    @unique
+  name             String    @unique
+  admin            Boolean   @default(false)
+  scores           score[]
+  score            Int       @default(0)
+  streak           Int       @default(0)
+  lastStreakUpdate DateTime?
+  percent          Int       @default(0)
+  tests            Test[]
 }
 
 model Group {
@@ -29,11 +34,15 @@ model Group {
 }
 
 model Test {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  tasksIds String[] @db.ObjectId
-  tasks    Task[]   @relation(fields: [tasksIds], references: [id])
-  user     User?    @relation(fields: [userId], references: [id])
-  userId   String?  @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  answers     answer[]
+  isComplete  Boolean   @default(false)
+  tasksIds    String[]  @db.ObjectId
+  tasks       Task[]    @relation(fields: [tasksIds], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @db.ObjectId
 }
 
 model Task {
@@ -50,4 +59,16 @@ model Topic {
   id   String @id @default(auto()) @map("_id") @db.ObjectId
   name String
   Task Task[]
+}
+
+type score {
+  score     Int
+  createdAt DateTime
+  testId    String
+}
+
+type answer {
+  taskId  String  @db.ObjectId
+  answer  String
+  correct Boolean
 }

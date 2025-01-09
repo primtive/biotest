@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Open_Sans } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Logo } from "@/components/logo";
 import Providers from "./providers";
@@ -8,9 +8,9 @@ import authOptions from "@/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const font = Open_Sans({
+const font = Montserrat({
   subsets: ["cyrillic"],
-  weight: "400"
+  weight: "500"
 });
 
 export const metadata: Metadata = {
@@ -28,12 +28,13 @@ export default async function RootLayout({
       <Providers session={session}>
         <body className={`${font.className} bg-background antialiased flex flex-col items-center`}>
           <Logo />
-          <div className="m-2 lg:m-5 space-y-3 w-fit max-w-full">
+          <div className="m-2 lg:m-5 space-y-3 w-fit max-w-[600px]">
             {session?.user!.admin &&
               <Card className="w-full p-2 space-x-2">
+                <a href="/admin/stats"><Button variant={'secondary'} className="p-2">Статистика</Button></a>
                 <a href="/admin/users"><Button variant={'secondary'} className="p-2">Пользователи</Button></a>
                 <a href="/admin/tasks"><Button variant={'secondary'} className="p-2">Задания</Button></a>
-                <a href="/admin/topics"><Button variant={'secondary'} className="p-2">Темы</Button></a>
+                {/* <a href="/admin/topics"><Button variant={'secondary'} className="p-2">Темы</Button></a> */}
               </Card>
             }
             {children}

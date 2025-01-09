@@ -3,6 +3,7 @@ import { Task } from '@/components/task';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 
 enum AnswerCorrect {
@@ -20,7 +21,10 @@ function checkAnswer(answer: string, userAnswer: string): boolean {
   return false
 }
 
-export const Test = ({ tasks }: { tasks: Array<{ id: string, html: string, answer: string }> }) => {
+export const Test = ({ tasks, id }: { tasks: Array<{ id: string, html: string, answer: string }>, id: string }) => {
+  const router = useRouter();
+  const pathname = usePathname()
+  const completePath = `${pathname}/complete`;
   const taskCount = tasks.length
   const [taskIndex, setTaskIndex] = React.useState(0)
   const [taskAnswers, setTaskAnswers] = React.useState(tasks.map(task => { return { id: task.id, answer: task.answer, userAnswer: '', correct: AnswerCorrect.NotAnswered } }))
@@ -32,6 +36,14 @@ export const Test = ({ tasks }: { tasks: Array<{ id: string, html: string, answe
     setTaskAnswers(items);
     setTaskIndex(taskIndex + 1)
   }
+
+  React.useEffect(() => {
+    if (taskCount == taskIndex) {
+      fetch(`/api/complete/${id}`,
+        {method: 'POST', body: JSON.stringify(taskAnswers)}
+      ).then(res => router.push(completePath))
+    }
+  }, [taskIndex])
 
   return (
     <>
