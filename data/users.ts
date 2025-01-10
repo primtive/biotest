@@ -13,7 +13,7 @@ export const getUsers = async () => {
 }
 
 export const getUserLastTest = async (userId: string) => {
-  const test = await prisma.test.findFirst({where: {userId}})
+  const test = await prisma.test.findFirst({ where: { userId }, orderBy: {createdAt: 'desc'} })
   return test;
 }
 
