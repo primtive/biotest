@@ -22,6 +22,7 @@ model User {
   admin            Boolean   @default(false)
   scores           score[]
   score            Int       @default(0)
+  testsCount       Int       @default(0)
   streak           Int       @default(0)
   lastStreakUpdate DateTime?
   percent          Int       @default(0)
@@ -41,8 +42,8 @@ model Test {
   isComplete  Boolean   @default(false)
   tasksIds    String[]  @db.ObjectId
   tasks       Task[]    @relation(fields: [tasksIds], references: [id])
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String   @db.ObjectId
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String    @db.ObjectId
 }
 
 model Task {

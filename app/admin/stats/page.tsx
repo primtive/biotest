@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default async function StatsPage() {
-  const lastTests = await prisma.test.findMany({ take: 10, include: { user: true } })
+  const lastTests = await prisma.test.findMany({ take: 20, include: { user: true } })
 
   return (
     <>

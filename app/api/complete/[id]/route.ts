@@ -22,7 +22,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     pipeline: [
       {
         $match: {
-          userId: {$oid: user.id},
+          userId: { $oid: user.id },
           isComplete: true
         }
       },
@@ -69,6 +69,14 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     ]
   })
   const percent = percentAggregation[0]?.percent
-  await prisma.user.update({ where: { id: test.userId! }, data: { scores, percent, score: scores.reduce((acc, a) => a.score + acc, 0) } })
+  await prisma.user.update({
+    where: { id: test.userId! },
+    data: {
+      scores,
+      percent,
+      score: scores.reduce((acc, a) => a.score + acc, 0),
+      testsCount: ++user.testsCount
+    }
+  })
   return new NextResponse()
 }

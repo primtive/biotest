@@ -22,6 +22,6 @@ export default async function TestPage({
   if (!test) notFound();;
   const tasks = await prisma.task.findMany({where: {id: {in: test.tasksIds}}})
   return (
-    <Test tasks={tasks} id={id} />
+    <Test tasks={tasks} initTaskAnswers={test.answers} id={id} />
   );
 }

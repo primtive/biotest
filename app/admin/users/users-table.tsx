@@ -1,7 +1,7 @@
 "use client"
 import React, { ReactNode, useMemo, useState } from "react";
 import { useTable, useGlobalFilter } from "react-table";
-import { CheckCircle, Lock, Pencil, PercentCircle, Trash2 } from "lucide-react";
+import { CheckCircle, Lock, NotepadText, Pencil, PercentCircle, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -30,6 +30,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { UserEdit } from "./user-edit";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const GlobalFilter = ({ globalFilter, setGlobalFilter }: any) => {
   return (
@@ -87,11 +88,36 @@ const UserTable = (data: { users: Array<User> }) => {
         accessor: "name",
       },
       {
-        Header: () => <CheckCircle className="h-4 w-4" />,
+        Header: () => <Tooltip>
+          <TooltipTrigger asChild>
+            <NotepadText className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Количество пройденных тестов</p>
+          </TooltipContent>
+        </Tooltip>,
+        accessor: "testsCount"
+      },
+      {
+        Header: () => <Tooltip>
+          <TooltipTrigger asChild>
+            <CheckCircle className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Количество правильно выполненных заданий</p>
+          </TooltipContent>
+        </Tooltip>,
         accessor: "score"
       },
       {
-        Header: () => <PercentCircle className="h-4 w-4" />,
+        Header: () => <Tooltip>
+          <TooltipTrigger asChild>
+            <PercentCircle className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Процент правильных заданий за последние 10 тестов</p>
+          </TooltipContent>
+        </Tooltip>,
         accessor: "percent"
       },
       {
@@ -165,44 +191,46 @@ const UserTable = (data: { users: Array<User> }) => {
   return (
     <Card className="w-max max-w-fit">
       <GlobalFilter globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
-      <Table {...getTableProps()}>
-        <TableHeader>
-          {headerGroups.map((headerGroup: any, i) => {
-            const { key, props } = headerGroup.getHeaderGroupProps();
-            return <TableRow key={key} {...props}>
-              {headerGroup.headers.map((column: any, j: number) => {
-                const { key, props } = column.getHeaderProps();
-                return <TableHead key={key} {...props}>
-                  {column.render("Header")}
-                </TableHead>
-              })}
-            </TableRow>
-          })}
-        </TableHeader>
-        <TableBody {...getTableBodyProps()}>
-          {rows.map((row: any) => {
-            prepareRow(row);
-            const { key, props } = row.getRowProps();
-            return (
-              <TableRow key={key} {...props}>
-                {row.cells.map((cell: any, j: number) => {
-                  const { key_, props } = cell.getCellProps();
-                  return <TableCell key={key_} {...props}>
-                    {cell.render("Cell")}
-                  </TableCell>
+      <TooltipProvider>
+        <Table {...getTableProps()}>
+          <TableHeader>
+            {headerGroups.map((headerGroup: any, i) => {
+              const { key, props } = headerGroup.getHeaderGroupProps();
+              return <TableRow key={key} {...props}>
+                {headerGroup.headers.map((column: any, j: number) => {
+                  const { key, props } = column.getHeaderProps();
+                  return <TableHead key={key} {...props}>
+                    {column.render("Header")}
+                  </TableHead>
                 })}
               </TableRow>
-            );
-          })}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={7}>
-              <UserEdit className="w-full" el={<a className={cn("w-full", buttonVariants({variant: "default"}))}>Создать</a>} data={{}} onSave={onUserSave} />
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
+            })}
+          </TableHeader>
+          <TableBody {...getTableBodyProps()}>
+            {rows.map((row: any) => {
+              prepareRow(row);
+              const { key, props } = row.getRowProps();
+              return (
+                <TableRow key={key} {...props}>
+                  {row.cells.map((cell: any, j: number) => {
+                    const { key_, props } = cell.getCellProps();
+                    return <TableCell key={key_} {...props}>
+                      {cell.render("Cell")}
+                    </TableCell>
+                  })}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={8}>
+                <UserEdit className="w-full" el={<a className={cn("w-full", buttonVariants({ variant: "default" }))}>Создать</a>} data={{}} onSave={onUserSave} />
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      </TooltipProvider>
     </Card>
   );
 };

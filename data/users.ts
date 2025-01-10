@@ -12,6 +12,11 @@ export const getUsers = async () => {
   return users
 }
 
+export const getUserLastTest = async (userId: string) => {
+  const test = await prisma.test.findFirst({where: {userId}})
+  return test;
+}
+
 export const getLeaderboard: () => Promise<any> = async () => {
   const users = await prisma.user.aggregateRaw({
     pipeline: [
