@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const UserEdit = ({ data, id, onSave, el, className }: {data?: any, id?: string, onSave: (values: any) => void, el: React.ReactNode, className?: string}) => {
   const [name, setName] = React.useState(data?.name)
@@ -20,7 +21,7 @@ export const UserEdit = ({ data, id, onSave, el, className }: {data?: any, id?: 
 
   return (
   <Dialog open={open} onOpenChange={setOpen}>
-    <DialogTrigger className={className}>
+    <DialogTrigger className={cn(className, 'block')}>
       {el}
     </DialogTrigger>
     <DialogContent>

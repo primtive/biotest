@@ -12,24 +12,24 @@ export const metadata = {
 };
 
 export default async function StatsPage() {
-  const lastTests = await prisma.test.findMany({ take: 20, include: { user: true } })
+  const lastTests = await prisma.test.findMany({ take: -20, include: { user: true } })
 
-  return (
-    <>
-      <Card>
-        <p>Последние прохождения тестов</p>
-        <br />
-        <Table>
-          <TableBody>
-            {lastTests.reverse().map(test => <TableRow>
-              <TableCell>{test.isComplete ? moment(test.completedAt).format('lll') : 'Не пройден'}</TableCell>
-              <TableCell>{test.user?.name || 'Аноним'}</TableCell>
-              <TableCell>{test.answers.reduce((acc, a) => acc + (+a.correct), 0) + '/' + test.answers.length}</TableCell>
-              <TableCell>{test.isComplete ? moment(new Date(test.completedAt!.valueOf() - test.createdAt!.valueOf())).format('mm:ss') : 'Не пройден'}</TableCell>
-            </TableRow>)}
-          </TableBody>
-        </Table>
-      </Card>
-    </>
-  );
+return (
+  <>
+    <Card>
+      <p>Последние прохождения тестов</p>
+      <br />
+      <Table>
+        <TableBody>
+          {lastTests.reverse().map(test => <TableRow>
+            <TableCell>{test.isComplete ? moment(test.completedAt).format('lll') : 'Не пройден'}</TableCell>
+            <TableCell>{test.user?.name || 'Аноним'}</TableCell>
+            <TableCell>{test.answers.reduce((acc, a) => acc + (+a.correct), 0) + '/' + test.answers.length}</TableCell>
+            <TableCell>{test.isComplete ? moment(new Date(test.completedAt!.valueOf() - test.createdAt!.valueOf())).format('mm:ss') : 'Не пройден'}</TableCell>
+          </TableRow>)}
+        </TableBody>
+      </Table>
+    </Card>
+  </>
+);
 }

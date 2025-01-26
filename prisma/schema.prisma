@@ -29,11 +29,6 @@ model User {
   tests            Test[]
 }
 
-model Group {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  name String
-}
-
 model Test {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   createdAt   DateTime  @default(now())
@@ -44,6 +39,8 @@ model Test {
   tasks       Task[]    @relation(fields: [tasksIds], references: [id])
   user        User      @relation(fields: [userId], references: [id])
   userId      String    @db.ObjectId
+  // topicsId    String[]  @default([]) @db.ObjectId
+  // topics      Topic[]   @relation(fields: [topicsId], references: [id])
 }
 
 model Task {
@@ -51,15 +48,23 @@ model Task {
   html    String
   answer  String
   topic   Topic    @relation(fields: [topicId], references: [id])
-  testIDs String[] @db.ObjectId
-  tests   Test[]   @relation(fields: [testIDs], references: [id])
   topicId String   @db.ObjectId
+  testIDs String[] @default([]) @db.ObjectId
+  tests   Test[]   @relation(fields: [testIDs], references: [id])
+}
+
+model TopicGroup {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  name   String
+  topics Topic[]
 }
 
 model Topic {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  name String
-  Task Task[]
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  topicGroup   TopicGroup @relation(fields: [topicGroupId], references: [id])
+  topicGroupId String     @db.ObjectId
+  Task         Task[]
 }
 
 type score {

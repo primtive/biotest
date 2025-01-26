@@ -29,7 +29,7 @@ const combine = (a: Array<any>, b: Array<any>, prop: string) =>
 function checkAnswer(answer: string, userAnswer: string): boolean {
   if (answer == userAnswer) return true
   for (const singleAnswer of answer.split(', ')) {
-    if (singleAnswer == userAnswer) return true
+    if (singleAnswer.toLowerCase() == userAnswer.toLowerCase()) return true
   }
   if (userAnswer == answer.replace(/\s/g, '')) return true
   return false

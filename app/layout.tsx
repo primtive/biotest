@@ -34,7 +34,7 @@ export default async function RootLayout({
                 <a href="/admin/stats"><Button variant={'secondary'} className="p-2">Статистика</Button></a>
                 <a href="/admin/users"><Button variant={'secondary'} className="p-2">Пользователи</Button></a>
                 <a href="/admin/tasks"><Button variant={'secondary'} className="p-2">Задания</Button></a>
-                {/* <a href="/admin/topics"><Button variant={'secondary'} className="p-2">Темы</Button></a> */}
+                <a href="/admin/topics"><Button variant={'secondary'} className="p-2">Темы</Button></a>
               </Card>
             }
             {children}

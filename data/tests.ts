@@ -34,7 +34,7 @@ export async function newTestWithTopics(topicIds: Array<string>, userId: string)
   const test = await prisma.test.create({
     data: {
       userId: user.id,
-      tasksIds: tasks!.map((task: any) => task.id)
+      tasksIds: tasks!.map((task: any) => task.id),
     }
   })
   return test.id!

@@ -9,6 +9,6 @@ export const metadata = {
 export default async function TasksPage() {
   const topics = await prisma.topic.findMany()
   return (
-    <TasksTable topics={topics} />
+    <TasksTable initTopics={topics} />
   );
 }

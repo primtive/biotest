@@ -24,8 +24,9 @@ export default async function CompletePage({
         <>
           <p>Ошибки: </p>
           {test?.answers.filter(answer => !answer.correct).map(async answer => {
-            const task = await prisma.task.findFirst({ where: { id: answer.taskId }, })
+            const task = await prisma.task.findFirst({ where: { id: answer.taskId }, include: {topic: true} })
             return <Card>
+              <p className='mb-1'>Тема: {task?.topic.name}</p>
               <div dangerouslySetInnerHTML={{ __html: task!.html }} />
               <p>Правильный ответ: {task?.answer}</p>
               <p>Ваш ответ: {answer.answer}</p>
