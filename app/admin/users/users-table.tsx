@@ -159,7 +159,7 @@ const UserTable = (data: { users: Array<User> }) => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Отмена</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => deleteUser(row.id)}>Удалить</AlertDialogAction>
+                  <AlertDialogAction onClick={() => deleteUser(row.values.id)}>Удалить</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>

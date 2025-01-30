@@ -8,7 +8,7 @@ export async function newRandomTest(userId: string) {
   const tasks: any = await prisma.task.findMany({
     take: 10,
     include: { topic: true },
-    where: { topic: { topicGroupId }, active: true }
+    where: { topic: { topicGroupId, active: true }, active: true }
   })
   if (!tasks) return
   const test = await prisma.test.create({
