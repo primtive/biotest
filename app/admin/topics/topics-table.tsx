@@ -1,7 +1,7 @@
 "use client"
 import React, { ReactNode, useMemo, useState } from "react";
 import { useTable, useGlobalFilter } from "react-table";
-import { CheckCircle, Lock, NotepadText, Pencil, PercentCircle, Trash, Trash2 } from "lucide-react";
+import { Check, CheckCircle, Lock, NotepadText, Pencil, PercentCircle, Trash, Trash2, X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -89,6 +89,16 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
       {
         Header: "Кол-во",
         accessor: "count",
+      },
+      {
+        accessor: 'active',
+        Cell: ({ row }: any) => (
+          row.values.active
+            ?
+            <Check className="w-5 h-5" />
+            :
+            <X className="w-5 h-5" />
+        )
       },
       {
         accessor: "id",

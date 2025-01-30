@@ -88,6 +88,10 @@ const UserTable = (data: { users: Array<User> }) => {
         accessor: "name",
       },
       {
+        Header: "Группа",
+        accessor: "topicGroup.name"
+      },
+      {
         Header: () => <Tooltip>
           <TooltipTrigger asChild>
             <NotepadText className="h-4 w-4" />
@@ -137,8 +141,8 @@ const UserTable = (data: { users: Array<User> }) => {
         ),
       },
       {
-        accessor: (row: any) => (
-          row.admin
+        Cell: ({ row }: any) => (
+          row.values.admin
             ?
             <Trash2 className="text-muted-foreground w-5 h-5" />
             :
@@ -160,7 +164,7 @@ const UserTable = (data: { users: Array<User> }) => {
               </AlertDialogContent>
             </AlertDialog>
         ),
-        id: 'delete'
+        accessor: 'topicGroupId'
       }
     ],
     []

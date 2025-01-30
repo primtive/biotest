@@ -8,10 +8,10 @@ import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 
 export default async function Index() {
-  const topics = await prisma.topic.findMany()
   const session = await getServerSession(authOptions)
+  const topicGroupId = session?.user?.topicGroupId
+  const topics = await prisma.topic.findMany({ where: { topicGroupId, active: true }, include: { topicGroup: true } })
   const lastTest = session?.user ? (await getUserLastTest(session.user.id)) : false
-  console.log(lastTest);
   return <>
     {session &&
       <>
@@ -19,8 +19,8 @@ export default async function Index() {
           <Card className="space-y-2" >
             <p>Вы не закончили прошлый тест!</p>
             <a href={`/t/${lastTest.id}`} className={buttonVariants()}>Вернуться</a>
-            </Card>}
-        <Home topics={topics} />
+          </Card>}
+        <Home topics={topics} topicGroupId={topicGroupId!} />
       </>}
     <Leaderboard />
   </>

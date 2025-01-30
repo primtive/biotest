@@ -3,16 +3,19 @@ import prisma from "./prisma";
 export async function newRandomTest(userId: string) {
   const user = await prisma.user.findFirstOrThrow({ where: { name: userId } })
 
-  const tasks: any = await prisma.task.aggregateRaw({
-    pipeline: [
-      { $sample: { size: 10 } }
-    ]
+  const topicGroupId = user.topicGroupId
+
+  const tasks: any = await prisma.task.findMany({
+    take: 10,
+    include: { topic: true },
+    where: { topic: { topicGroupId }, active: true }
   })
   if (!tasks) return
   const test = await prisma.test.create({
     data: {
       userId: user.id,
-      tasksIds: tasks!.map((task: any) => task._id.$oid)
+      tasksIds: tasks!.map((task: any) => task.id),
+      topicGroupId
     }
   })
   return test.id!
@@ -21,11 +24,14 @@ export async function newRandomTest(userId: string) {
 export async function newTestWithTopics(topicIds: Array<string>, userId: string) {
   const user = await prisma.user.findFirstOrThrow({ where: { name: userId } })
 
+  const topicGroupId = user.topicGroupId
+
   const allTasks: any = await prisma.task.findMany({
     where: {
       topicId: {
         in: topicIds,
       },
+      active: true
     },
   });
   console.log(allTasks);
@@ -33,6 +39,7 @@ export async function newTestWithTopics(topicIds: Array<string>, userId: string)
   if (!tasks) return
   const test = await prisma.test.create({
     data: {
+      topicGroupId,
       userId: user.id,
       tasksIds: tasks!.map((task: any) => task.id),
     }

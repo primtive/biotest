@@ -3,11 +3,7 @@ import { JsonObject } from "@prisma/client/runtime/library";
 
 export const getUsers = async () => {
   const users = await prisma.user.findMany({
-    // select: {
-    //   name: true,
-    //   username: true,
-    //   admin: true
-    // }
+    include: {topicGroup: true}
   })
   return users
 }

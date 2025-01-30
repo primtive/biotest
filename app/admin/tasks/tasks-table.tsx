@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, ArrowRight, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Pencil, Trash2, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useTable, usePagination } from 'react-table';
 import { TaskEdit } from './task-edit';
@@ -78,6 +78,15 @@ export const TasksTable = ({ initTopics }: any) => {
       {
         Header: 'Ответ',
         accessor: 'answer',
+      },
+      {
+        accessor: (row: any) => (row.active
+          ?
+          <Check />
+          :
+          <X />
+        ),
+        id: 'active'
       },
       {
         Header: '',

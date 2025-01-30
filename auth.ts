@@ -11,7 +11,8 @@ declare module "next-auth" {
     admin: boolean,
     score: number,
     streak: number,
-    percent: number
+    percent: number,
+    topicGroupId: string
   }
 
   interface Session {

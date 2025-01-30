@@ -14,9 +14,11 @@ import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const TopicEdit = ({ data, id, onSave, el, className }: { data?: any, id?: string, onSave: (values: any) => void, el: React.ReactNode, className?: string }) => {
   const [name, setName] = React.useState(data?.name)
+  const [active, setActive] = React.useState(data?.active)
   const [topicGroupId, setTopicGroupId] = React.useState(data?.topicGroupId)
   const [open, setOpen] = React.useState(false);
 
@@ -30,9 +32,13 @@ export const TopicEdit = ({ data, id, onSave, el, className }: { data?: any, id?
           <DialogTitle>Изменить тему</DialogTitle>
         </DialogHeader>
 
+        <div className='flex gap-2'>
+          <Checkbox id='active' checked={active} onCheckedChange={(val) => setActive(val)}></Checkbox>
+          <Label htmlFor='active'>Включить</Label>
+        </div>
         <Label htmlFor='name' >Название</Label>
         <Input id='name' value={name} onChange={(e) => setName(e.target.value)} />
-        <Label  >Группа заданий</Label>
+        <Label>Группа заданий</Label>
         <Select defaultValue={topicGroupId} onValueChange={(val) => setTopicGroupId(val)}>
           <SelectTrigger className="w-[300px]">
             <SelectValue placeholder="Выберите группу заданий" />
@@ -44,7 +50,7 @@ export const TopicEdit = ({ data, id, onSave, el, className }: { data?: any, id?
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button onClick={() => { onSave({ name, topicGroupId, id }); setOpen(false) }}>Сохранить</Button>
+        <Button onClick={() => { onSave({ name, topicGroupId, id, active }); setOpen(false) }}>Сохранить</Button>
       </DialogContent>
     </Dialog>
 

@@ -13,31 +13,47 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export const UserEdit = ({ data, id, onSave, el, className }: {data?: any, id?: string, onSave: (values: any) => void, el: React.ReactNode, className?: string}) => {
+export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?: string, onSave: (values: any) => void, el: React.ReactNode, className?: string }) => {
   const [name, setName] = React.useState(data?.name)
   const [username, setUsername] = React.useState(data?.username)
+  const [topicGroupId, setTopicGroupId] = React.useState(data?.topicGroupId)
   const [open, setOpen] = React.useState(false);
 
   return (
-  <Dialog open={open} onOpenChange={setOpen}>
-    <DialogTrigger className={cn(className, 'block')}>
-      {el}
-    </DialogTrigger>
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Изменить пользователя</DialogTitle>
-        <DialogDescription> ! Имя и имя пользователя должны быть уникальны !</DialogDescription>
-      </DialogHeader>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger className={cn(className, 'block')}>
+        {el}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Изменить пользователя</DialogTitle>
+          <DialogDescription> ! Имя и имя пользователя должны быть уникальны !</DialogDescription>
+        </DialogHeader>
 
-      <Label htmlFor='name' >Имя</Label>
-      <Input id='name' value={name} onChange={(e) => setName(e.target.value)} />
+        <Label htmlFor='name' >Имя</Label>
+        <Input id='name' value={name} onChange={(e) => setName(e.target.value)} />
 
-      <Label htmlFor='username' >Имя пользователя</Label>
-      <Input id='username' value={username} onChange={(e) => setUsername(e.target.value)} />
-      <Button onClick={() => { onSave({ name, username, id }); setOpen(false) }}>Сохранить</Button>
-    </DialogContent>
-  </Dialog>
+        <Label htmlFor='username' >Имя пользователя</Label>
+        <Input id='username' value={username} onChange={(e) => setUsername(e.target.value)} />
+
+        <Label>Группа заданий</Label>
+        <Select defaultValue={topicGroupId} onValueChange={(val) => setTopicGroupId(val)}>
+          <SelectTrigger className="w-[300px]">
+            <SelectValue placeholder="Выберите группу заданий" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="67962669e4f21c30e05aef8b">ЕГЭ</SelectItem>
+              <SelectItem value="67962ae5e4f21c30e05aef91">ОГЭ</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
+        <Button onClick={() => { onSave({ name, username, id, topicGroupId }); setOpen(false) }}>Сохранить</Button>
+      </DialogContent>
+    </Dialog>
 
   )
 }

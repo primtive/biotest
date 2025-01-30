@@ -30,7 +30,7 @@ export default async function RootLayout({
           <Logo />
           <div className="m-2 lg:m-5 space-y-3 w-fit max-w-[600px]">
             {session?.user!.admin &&
-              <Card className="w-full p-2 space-x-2">
+              <Card className="w-full p-2 flex gap-2 flex-wrap">
                 <a href="/admin/stats"><Button variant={'secondary'} className="p-2">Статистика</Button></a>
                 <a href="/admin/users"><Button variant={'secondary'} className="p-2">Пользователи</Button></a>
                 <a href="/admin/tasks"><Button variant={'secondary'} className="p-2">Задания</Button></a>

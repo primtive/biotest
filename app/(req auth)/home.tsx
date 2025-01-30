@@ -16,9 +16,10 @@ const FormSchema = z.object({
   }),
 })
 
-export default function Home({ topics }: { topics: Array<{ name: string, id: string }> }) {
+export default function Home({ topics, topicGroupId }: { topics: Array<{ name: string, id: string, topicGroupId: string, topicGroup: { name: string } }>, topicGroupId: string }) {
   const [mode, setMode] = React.useState(false);
   const router = useRouter()
+  const topicGroupName = topicGroupId == '67962669e4f21c30e05aef8b' ? 'ЕГЭ' : 'ОГЭ'
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -41,20 +42,21 @@ export default function Home({ topics }: { topics: Array<{ name: string, id: str
       <div className="flex w-full gap-2 justify-evenly">
 
         <Card className="w-full flex flex-col items-center justify-between space-y-2">
-          <p>Все задания сайта в перемешку</p>
+          <p>Задания {topicGroupName} в перемешку</p>
           <div className="mt-auto">
             <Button variant={mode ? "default" : "secondary"} onClick={() => setMode(false)}>Выбрать</Button>
           </div>
         </Card>
 
         <Card className="w-full flex flex-col items-center justify-between space-y-2">
-          <p>Выбрать нужные темы</p>
+          <p>Выбрать темы {topicGroupName}</p>
           <div className="mt-auto">
             <Button variant={!mode ? "default" : "secondary"} onClick={() => setMode(true)}>Выбрать</Button>
           </div>
         </Card>
 
       </div>
+
       {mode &&
         <Card>
           <p>Темы</p>
@@ -79,21 +81,21 @@ export default function Home({ topics }: { topics: Array<{ name: string, id: str
                                 <TableRow>
                                   <TableCell className="flex items-stretch">
                                     {/* <FormItem key={item.id}> */}
-                                      <Checkbox
-                                        checked={field.value?.includes(item.id)}
-                                        onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([...field.value, item.id])
-                                            : field.onChange(
-                                              field.value?.filter(
-                                                (value) => value !== item.id
-                                              )
+                                    <Checkbox
+                                      checked={field.value?.includes(item.id)}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...field.value, item.id])
+                                          : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== item.id
                                             )
-                                        }}
-                                      />
-                                      <FormLabel className="text-md ml-2">
-                                        {item.name}
-                                      </FormLabel>
+                                          )
+                                      }}
+                                    />
+                                    <FormLabel className="text-md ml-2">
+                                      {item.name}
+                                    </FormLabel>
                                     {/* </FormItem> */}
 
                                   </TableCell>
