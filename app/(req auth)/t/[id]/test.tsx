@@ -26,14 +26,19 @@ const combine = (a: Array<any>, b: Array<any>, prop: string) =>
     }, {})
   );
 
-function checkAnswer(answer: string, userAnswer: string): boolean {
-  if (answer == userAnswer) return true
-  for (const singleAnswer of answer.split(', ')) {
-    if (singleAnswer.toLowerCase() == userAnswer.toLowerCase()) return true
+function checkAnswer(correctAnswer: string, userAnswer: string): boolean {
+  if (correctAnswer == userAnswer) return true
+  for (const singleAnswer of correctAnswer.split(', ')) {
+    if (checkSingleAnswer(singleAnswer, userAnswer)) return true
   }
-  if (userAnswer == answer.replace(/\s/g, '')) return true
+  return checkSingleAnswer(correctAnswer, userAnswer)
+}
+
+function checkSingleAnswer(correctAnswer: string, userAnswer: string){
+  if (userAnswer.toLowerCase().replace(/\s/g, '') == correctAnswer.toLowerCase().replace(/\s/g, '')) return true
   return false
 }
+
 
 export const Test = ({ tasks, id, initTaskAnswers }: { tasks: Tasks, id: string, initTaskAnswers: AnswersBD }) => {
   const router = useRouter();

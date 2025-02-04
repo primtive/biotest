@@ -4,12 +4,12 @@ import { getLeaderboard } from '@/data/users';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { cn } from '@/lib/utils';
 
-export const Leaderboard = async () => {
-  const leaderboard = await getLeaderboard()
+export const Leaderboard = async ({topicGroupId, name} : any) => {
+  const leaderboard = await getLeaderboard(topicGroupId)
   return (
     <>
       <Card>
-        <p className='text-center'>Топ по очкам</p>
+        <p className='text-center'>{name}</p>
         <Table>
           <TableHeader>
             <TableHead></TableHead>
@@ -17,7 +17,7 @@ export const Leaderboard = async () => {
             <TableHead>Очки</TableHead>
           </TableHeader>
           <TableBody>
-            {leaderboard.map((user: any, i: number) => {
+            {leaderboard.filter((x: any) => x.score != 0).map((user: any, i: number) => {
               let color;
               switch (i) {
                 case 0:

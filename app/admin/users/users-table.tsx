@@ -193,7 +193,8 @@ const UserTable = (data: { users: Array<User> }) => {
   }, [globalFilter, setFilter]);
 
   return (
-    <Card className="w-max max-w-fit">
+    <Card className="w-max max-w-fit space-y-2">
+      <UserEdit className="w-full" el={<a className={cn("w-full", buttonVariants({ variant: "default" }))}>Создать</a>} data={{}} onSave={onUserSave} />
       <GlobalFilter globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
       <TooltipProvider>
         <Table {...getTableProps()}>
@@ -226,13 +227,6 @@ const UserTable = (data: { users: Array<User> }) => {
               );
             })}
           </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={8}>
-                <UserEdit className="w-full" el={<a className={cn("w-full", buttonVariants({ variant: "default" }))}>Создать</a>} data={{}} onSave={onUserSave} />
-              </TableCell>
-            </TableRow>
-          </TableFooter>
         </Table>
       </TooltipProvider>
     </Card>

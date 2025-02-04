@@ -7,6 +7,9 @@ import { getUserLastTest } from "@/data/users";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 
+const ogeTopicGroup = '67962ae5e4f21c30e05aef91';
+const egeTopicGroup = '67962669e4f21c30e05aef8b';
+
 export default async function Index() {
   const session = await getServerSession(authOptions)
   const topicGroupId = session?.user?.topicGroupId
@@ -22,6 +25,7 @@ export default async function Index() {
           </Card>}
         <Home topics={topics} topicGroupId={topicGroupId!} />
       </>}
-    <Leaderboard />
+    <Leaderboard topicGroupId={ogeTopicGroup} name={'Топ по очкам ОГЭ'} />
+    <Leaderboard topicGroupId={egeTopicGroup} name={'Топ по очкам ЕГЭ'} />
   </>
 }
