@@ -6,7 +6,6 @@ export async function newRandomTest(userId: string) {
   const topicGroupId = user.topicGroupId
 
   const allTasks: any = await prisma.task.findMany({
-    take: 10,
     include: { topic: true },
     where: { topic: { topicGroupId, active: true }, active: true }
   })
@@ -35,7 +34,6 @@ export async function newTestWithTopics(topicIds: Array<string>, userId: string)
       active: true
     },
   });
-  console.log(allTasks);
   const tasks = allTasks.sort(() => 0.5 - Math.random()).slice(0, 10);
   if (!tasks) return
   const test = await prisma.test.create({
