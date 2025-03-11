@@ -31,6 +31,9 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { UserEdit } from "./user-edit";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { UserBadge } from "@/components/user-badge";
 
 const GlobalFilter = ({ globalFilter, setGlobalFilter }: any) => {
   return (
@@ -82,6 +85,7 @@ const UserTable = (data: { users: Array<User> }) => {
       {
         Header: "Имя пользователя",
         accessor: "username",
+        Cell: ({ row }: any) => <UserBadge username={row.values.username} />,
       },
       {
         Header: "Имя",

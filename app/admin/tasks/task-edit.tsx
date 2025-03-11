@@ -29,12 +29,14 @@ import { Eye } from 'lucide-react';
 
 export const TaskEdit = ({ data, id, onSave, el, topics, className }: { data?: any, id?: string, onSave: (values: any) => void, el: React.ReactNode, topics: Array<any>, className?: string }) => {
   const [active, setActive] = React.useState(data?.active)
+  const [disordered, setDisordered] = React.useState(data?.disordered)
   const [topicId, setTopicId] = React.useState(data?.topicId)
   const [html, setHtml] = React.useState(data?.html)
   const [answer, setAnswer] = React.useState(data?.answer)
   const [open, setOpen] = React.useState(false);
   React.useEffect(() => {
     setActive(data?.active);
+    setDisordered(data?.disordered);
     setTopicId(data?.topicId);
     setHtml(data?.html);
     setAnswer(data?.answer);
@@ -53,6 +55,10 @@ export const TaskEdit = ({ data, id, onSave, el, topics, className }: { data?: a
         <div className='flex gap-2'>
           <Checkbox id='active' checked={active} onCheckedChange={(val) => setActive(val)}></Checkbox>
           <Label htmlFor='active'>Включить</Label>
+        </div>
+        <div className='flex gap-2'>
+          <Checkbox id='disordered' checked={disordered} onCheckedChange={(val) => setDisordered(val)}></Checkbox>
+          <Label htmlFor='disordered'>Неупорядоченное</Label>
         </div>
         <Label htmlFor='html' >Тема</Label>
         <Select defaultValue={topicId} onValueChange={(val) => setTopicId(val)}>
@@ -81,7 +87,7 @@ export const TaskEdit = ({ data, id, onSave, el, topics, className }: { data?: a
 
         <Label htmlFor='answer' >Ответ</Label>
         <EditStringArray initialStrings={answer.split(', ')} onChange={(strings: any) => { setAnswer(strings.join(', ')) }} />
-        <Button onClick={() => { onSave({ topicId, html, answer, id, active }); setOpen(false) }}>Сохранить</Button>
+        <Button onClick={() => { onSave({ topicId, html, answer, id, active, disordered }); setOpen(false) }}>Сохранить</Button>
       </DialogContent>
     </Dialog>
 

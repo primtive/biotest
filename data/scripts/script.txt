@@ -1,0 +1,4 @@
+db.Task.updateMany(
+  { disordered: { $exists: false } },
+  { $set: { disordered: false } }
+);

@@ -42,6 +42,7 @@
     "react-medium-image-zoom": "^5.2.12",
     "react-string-replace": "^1.1.1",
     "react-table": "^7.8.0",
+    "recharts": "^2.15.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.1"

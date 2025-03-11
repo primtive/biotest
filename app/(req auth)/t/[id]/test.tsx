@@ -13,28 +13,22 @@ enum AnswerCorrect {
 }
 
 type AnswersBD = Array<{ taskId: string, answer: string, correct: boolean }>
-type Tasks = Array<{ id: string, html: string, answer: string }>
+type Tasks = Array<{ id: string, html: string, answer: string, disordered: boolean }>
 
-const combine = (a: Array<any>, b: Array<any>, prop: string) =>
-  Object.values(
-    [...a, ...b].reduce((acc, v) => {
-      if (v[prop])
-        acc[v[prop]] = acc[v[prop]]
-          ? { ...acc[v[prop]], ...v }
-          : { ...v };
-      return acc;
-    }, {})
-  );
+const eqSet = (xs: any, ys: any) =>
+  xs.size === ys.size &&
+  [...xs].every((x) => ys.has(x));
 
-function checkAnswer(correctAnswer: string, userAnswer: string): boolean {
-  if (correctAnswer == userAnswer) return true
-  for (const singleAnswer of correctAnswer.split(', ')) {
-    if (checkSingleAnswer(singleAnswer, userAnswer)) return true
+function checkAnswer(task: any, userAnswer: string, disordered: boolean): boolean {
+  if (task.answer == userAnswer) return true
+  for (const singleAnswer of task.answer.split(', ')) {
+    if (checkSingleAnswer(singleAnswer, userAnswer, disordered)) return true
   }
-  return checkSingleAnswer(correctAnswer, userAnswer)
+  return checkSingleAnswer(task.answer, userAnswer, disordered)
 }
 
-function checkSingleAnswer(correctAnswer: string, userAnswer: string){
+function checkSingleAnswer(correctAnswer: string, userAnswer: string, disordered: boolean) {
+  if (disordered) if (eqSet(new Set(userAnswer.toLowerCase().replace(/\s/g, '')), new Set(correctAnswer.toLowerCase().replace(/\s/g, '')))) return true
   if (userAnswer.toLowerCase().replace(/\s/g, '') == correctAnswer.toLowerCase().replace(/\s/g, '')) return true
   return false
 }
@@ -49,14 +43,14 @@ export const Test = ({ tasks, id, initTaskAnswers }: { tasks: Tasks, id: string,
   const [taskAnswers, setTaskAnswers] = React.useState(tasks.map(task => {
     const taskAnswer = initTaskAnswers.find(x => x.taskId == task.id)
     if (taskAnswer) return { id: task.id, answer: task.answer, userAnswer: taskAnswer.answer, correct: taskAnswer.correct ? AnswerCorrect.Correct : AnswerCorrect.Incorrect }
-    return { id: task.id, answer: task.answer, userAnswer: '', correct: AnswerCorrect.NotAnswered }
+    return { id: task.id, answer: task.answer, userAnswer: '', correct: AnswerCorrect.NotAnswered, disordered: task.disordered }
   }))
   const [loading, setLoading] = React.useState(false);
 
   function onAnswer(answer: string, taskId: string) {
     let items = [...taskAnswers];
     items[taskIndex].userAnswer = answer;
-    items[taskIndex].correct = checkAnswer(items[taskIndex].answer, answer) ? AnswerCorrect.Correct : AnswerCorrect.Incorrect;
+    items[taskIndex].correct = checkAnswer(items[taskIndex], answer, items[taskIndex].disordered!) ? AnswerCorrect.Correct : AnswerCorrect.Incorrect;
     setTaskAnswers(items);
     setTaskIndex(taskIndex + 1)
     fetch(`/api/complete-task/${id}`,

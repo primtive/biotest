@@ -25,7 +25,7 @@ export default async function Index() {
           </Card>}
         <Home topics={topics} topicGroupId={topicGroupId!} />
       </>}
-    <Leaderboard topicGroupId={ogeTopicGroup} name={'Топ по очкам ОГЭ'} />
-    <Leaderboard topicGroupId={egeTopicGroup} name={'Топ по очкам ЕГЭ'} />
+    <Leaderboard topicGroupId={ogeTopicGroup} name={'Топ по очкам ОГЭ'} userId={session?.user?.id!} />
+    <Leaderboard topicGroupId={egeTopicGroup} name={'Топ по очкам ЕГЭ'} userId={session?.user?.id!} />
   </>
 }

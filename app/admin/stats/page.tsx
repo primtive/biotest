@@ -7,6 +7,8 @@ import 'moment/locale/ru'
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { UserBadge } from '@/components/user-badge';
+import { ReviewTest } from '@/components/review-test';
 
 moment.locale('ru');
 
@@ -31,24 +33,27 @@ export default async function StatsPage({ searchParams }: { searchParams: any })
   return (
     <>
       <Card>
-        <p>Последние прохождения тестов</p>
+        <p>История тестов</p>
         <br />
         <Table>
           <TableHeader>
-            <TableHead>Начало теста</TableHead>
-            <TableHead>Пользователь</TableHead>
+            <TableHead className='w-[230px]'>Пользователь</TableHead>
+            <TableHead className='min-w-[200px]'>Начало теста</TableHead>
             <TableHead></TableHead>
             <TableHead></TableHead>
             <TableHead>Время</TableHead>
+            <TableHead></TableHead>
           </TableHeader>
           <TableBody>
-            {lastTests.reverse().map(test => <TableRow>
-              <TableCell>{moment(test.createdAt).format('lll')}</TableCell>
-              <TableCell>{test.user?.name || 'Аноним'}</TableCell>
-              <TableCell>{test.topicGroup.name}</TableCell>
-              <TableCell>{test.answers.reduce((acc, a) => acc + (+a.correct), 0) + '/' + test.answers.length}</TableCell>
-              <TableCell>{test.isComplete ? moment(new Date(test.completedAt!.valueOf() - test.createdAt!.valueOf())).format('mm:ss') : 'Не пройден'}</TableCell>
-            </TableRow>)}
+            {lastTests.reverse().map(test =>
+              <TableRow>
+                <TableCell>{<UserBadge username={test.user?.username} name={test.user?.name || 'Аноним'} />}</TableCell>
+                <TableCell>{moment(test.createdAt).format('lll')}</TableCell>
+                <TableCell>{test.topicGroup.name}</TableCell>
+                <TableCell>{test.answers.reduce((acc, a) => acc + (+a.correct), 0) + '/' + test.answers.length}</TableCell>
+                <TableCell>{test.isComplete ? moment(new Date(test.completedAt!.valueOf() - test.createdAt!.valueOf())).format('mm:ss') : 'Не пройден'}</TableCell>
+                <TableCell><ReviewTest testId={test.id} /></TableCell>
+              </TableRow>)}
           </TableBody>
         </Table>
       </Card>

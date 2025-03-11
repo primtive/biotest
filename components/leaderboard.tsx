@@ -4,8 +4,13 @@ import { getLeaderboard } from '@/data/users';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { cn } from '@/lib/utils';
 
-export const Leaderboard = async ({topicGroupId, name} : any) => {
-  const leaderboard = await getLeaderboard(topicGroupId)
+export const Leaderboard = async ({ topicGroupId, name, userId }: { topicGroupId: string, name: string, userId: string }) => {
+  const leaderboard: Array<any> = await getLeaderboard(topicGroupId);
+  const filteredLeaderboard = leaderboard.filter((x: any) => x.score != 0).filter((x: any, i: any) => i < 10)
+  if (!filteredLeaderboard.find(x => x._id.$oid == userId)) {
+    const user = leaderboard.find(x => x._id.$oid == userId)
+    if (user) filteredLeaderboard.push({ ...user, index: leaderboard.indexOf(user) })
+  }
   return (
     <>
       <Card>
@@ -17,7 +22,7 @@ export const Leaderboard = async ({topicGroupId, name} : any) => {
             <TableHead>Очки</TableHead>
           </TableHeader>
           <TableBody>
-            {leaderboard.filter((x: any) => x.score != 0).map((user: any, i: number) => {
+            {filteredLeaderboard.map((user: any, i: number) => {
               let color;
               switch (i) {
                 case 0:
@@ -33,8 +38,8 @@ export const Leaderboard = async ({topicGroupId, name} : any) => {
                   color = ''
               }
               return <TableRow>
-                <TableCell className={cn(color)}>{i + 1}</TableCell>
-                <TableCell>{user.name}</TableCell>
+                <TableCell className={cn(color)}>{user.index || (i + 1)}</TableCell>
+                <TableCell className={cn(user._id.$oid == userId ? 'font-bold' : '')}>{user.name}</TableCell>
                 <TableCell>{user.score}</TableCell>
               </TableRow>
             })}
