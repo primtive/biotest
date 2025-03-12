@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Chart } from './chart';
+import { WeekChart } from '@/components/week-chart';
 import { Card } from '@/components/ui/card';
 import { CheckCircle, NotepadText, PercentCircle } from 'lucide-react';
 import moment from 'moment';
@@ -7,12 +7,51 @@ import 'moment/locale/ru'
 import prisma from '@/data/prisma';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ReviewTest } from '@/components/review-test';
+import { ScoreChart } from '@/components/score-chart';
+import { UserCard } from '@/components/user-card';
 
 moment.locale('ru')
 
 export const metadata = {
   title: 'Статистика по пользователю',
 };
+
+interface WeekAggregation {
+  weekDate: Date;
+  count: number;
+  countCompleted: number;
+  score: number;
+}
+
+function groupTestsByWeek(tests: any[]): WeekAggregation[] {
+  const grouped: { [key: string]: WeekAggregation } = {};
+
+  tests.forEach((test) => {
+    if (!test.createdAt) return
+    const weekStart = getWeekStartDate(test.createdAt);
+    const weekKey = weekStart.toISOString();
+    if (!grouped[weekKey]) {
+      grouped[weekKey] = {
+        weekDate: weekStart,
+        count: 0,
+        countCompleted: 0,
+        score: 0,
+      };
+    }
+    grouped[weekKey].count++;
+    grouped[weekKey].score += test.answers.reduce((acc: any, a: any) => acc + +a.correct, 0);
+    if (test.isComplete) grouped[weekKey].countCompleted++;
+  });
+  return Object.values(grouped).sort((a, b) => a.weekDate.getTime() - b.weekDate.getTime());
+}
+
+function getWeekStartDate(date: Date): Date {
+  const dayOfWeek = date.getDay();
+  const startOfWeek = new Date(date);
+  startOfWeek.setDate(date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+  startOfWeek.setHours(0, 0, 0, 0);
+  return startOfWeek;
+}
 
 export default async function UserStats({
   params,
@@ -27,38 +66,31 @@ export default async function UserStats({
     orderBy: { createdAt: 'asc' },
   })
 
+  const groupedTests = groupTestsByWeek(testHistory);
+
+  const weekData = groupedTests.map((item) => ({
+    weekDate: moment(item.weekDate).format('DD MMM'),
+    count: item.count,
+    countCompleted: item.countCompleted,
+  }));
+
+  const scoreData = groupedTests.map(item => ({
+    weekDate: moment(item.weekDate).format('DD MMM'),
+    score: item.score / item.count,
+  }))
+
   return (
     user
       ?
       <div className='space-y-3'>
-        <Card>
-          <div className='flex justify-between space-x-10'>
-            <div>
-              <h1 className='font-bold text-2xl'>{user.name}</h1>
-              <h1 className='text-lg mb-3'>{user.username}</h1>
-              <h1 className='text-base'>Создан {moment(user.createdAt).format('LLL')}</h1>
-              <h1 className='text-base'>Группа: {user.topicGroup.name}</h1>
-            </div>
-            <div className='flex gap-3 text-xl'>
-              <div>
-                <p>Очки</p>
-                <div className='flex gap-2'>{user.score}<CheckCircle /></div>
-              </div>
-              <div>
-                <p>Тесты</p>
-                <div className='flex gap-2'>{user.testsCount}<NotepadText /></div>
-              </div>
-              <div>
-                <p>Процент</p>
-                <div className='flex gap-2'>{user.percent}<PercentCircle /></div>
-              </div>
-            </div>
-          </div>
-        </Card>
+        <UserCard user={user} />
 
         <Card>
-          <h1 className='mb-3'>График тестов</h1>
-          <Chart data={testHistory} />
+          <h1 className='mb-3 text-xl'>Графики</h1>
+          <h1 className='mb-3'>Количество тестов в неделю</h1>
+          <WeekChart data={weekData} />
+          <h1 className='mb-3'>Правильных ответов в среднем</h1>
+          <ScoreChart data={scoreData} />
         </Card>
 
         <Card>

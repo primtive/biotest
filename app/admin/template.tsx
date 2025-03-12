@@ -10,7 +10,7 @@ export default async function Template({
   children: React.ReactNode;
 }>) {
   const session = await getServerSession(authOptions)
-  if (!session || !session.user?.admin) redirect('/')
+  if (!session || !session.user?.admin) {console.log('asdasd'); redirect('/')} 
   return (
     <>
       <p></p>

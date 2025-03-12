@@ -1,14 +1,10 @@
 import { Card } from '@/components/ui/card';
 import * as React from 'react';
 import prisma from '@/data/prisma';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import moment from 'moment'
+import CountUp from '@/components/count-up';
 import 'moment/locale/ru'
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
-import { UserBadge } from '@/components/user-badge';
-import { ReviewTest } from '@/components/review-test';
+import { WeekChart } from '@/components/week-chart';
 
 moment.locale('ru');
 
@@ -16,61 +12,85 @@ export const metadata = {
   title: 'Статистика',
 };
 
-const pageSize = 30;
+interface WeekAggregation {
+  weekDate: Date;
+  count: number;
+  countCompleted: number;
+}
+
+function groupTestsByWeek(tests: any[]): WeekAggregation[] {
+  const grouped: { [key: string]: WeekAggregation } = {};
+
+  tests.forEach((test) => {
+    if (!test.createdAt) return
+    const weekStart = getWeekStartDate(test.createdAt);
+    const weekKey = weekStart.toISOString();
+    if (!grouped[weekKey]) {
+      grouped[weekKey] = {
+        weekDate: weekStart,
+        count: 0,
+        countCompleted: 0,
+      };
+    }
+    grouped[weekKey].count++;
+    if (test.isComplete) grouped[weekKey].countCompleted++;
+  });
+  return Object.values(grouped).sort((a, b) => a.weekDate.getTime() - b.weekDate.getTime());
+}
+
+function getWeekStartDate(date: Date): Date {
+  const dayOfWeek = date.getDay();
+  const startOfWeek = new Date(date);
+  startOfWeek.setDate(date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+  startOfWeek.setHours(0, 0, 0, 0);
+  return startOfWeek;
+}
 
 export default async function StatsPage({ searchParams }: { searchParams: any }) {
   const testCount = await prisma.test.count()
-  const pageNumber = parseInt((await searchParams).page) || 1
-  const pageCount = Math.ceil(testCount / pageSize)
+  const userCount = await prisma.user.count()
+  const taskCount = await prisma.task.count()
 
-  const lastTests = await prisma.test.findMany({
-    take: -pageSize,
-    include: { user: true, topicGroup: true },
+  const testHistory = await prisma.test.findMany({
     orderBy: { createdAt: 'asc' },
-    skip: (pageNumber - 1) * pageSize,
   })
+
+  const taskCompletedCount = testHistory.reduce((acc, x) => acc + x.answers.length, 0);
+
+  const groupedTests = groupTestsByWeek(testHistory);
+
+  const weekData = groupedTests.map((item) => ({
+    weekDate: moment(item.weekDate).format('DD MMM'),
+    count: item.count,
+    countCompleted: item.countCompleted,
+  }));
 
   return (
     <>
-      <Card>
-        <p>История тестов</p>
-        <br />
-        <Table>
-          <TableHeader>
-            <TableHead className='w-[230px]'>Пользователь</TableHead>
-            <TableHead className='min-w-[200px]'>Начало теста</TableHead>
-            <TableHead></TableHead>
-            <TableHead></TableHead>
-            <TableHead>Время</TableHead>
-            <TableHead></TableHead>
-          </TableHeader>
-          <TableBody>
-            {lastTests.reverse().map(test =>
-              <TableRow>
-                <TableCell>{<UserBadge username={test.user?.username} name={test.user?.name || 'Аноним'} />}</TableCell>
-                <TableCell>{moment(test.createdAt).format('lll')}</TableCell>
-                <TableCell>{test.topicGroup.name}</TableCell>
-                <TableCell>{test.answers.reduce((acc, a) => acc + (+a.correct), 0) + '/' + test.answers.length}</TableCell>
-                <TableCell>{test.isComplete ? moment(new Date(test.completedAt!.valueOf() - test.createdAt!.valueOf())).format('mm:ss') : 'Не пройден'}</TableCell>
-                <TableCell><ReviewTest testId={test.id} /></TableCell>
-              </TableRow>)}
-          </TableBody>
-        </Table>
-      </Card>
-      <div className='flex items-center gap-3'>
-        <Button disabled={pageNumber == 1} className='h-min p-2' asChild={pageNumber != 1}>
-          <Link href={`?page=${pageNumber - 1}`}><ArrowLeft /></Link>
-        </Button>
-        <span>
-          Страница{' '}
-          <strong>
-            {pageNumber} из {pageCount}
-          </strong>{' '}
-        </span>
-        <Button disabled={pageNumber == pageCount} className='h-min p-2' asChild={pageNumber != pageCount}>
-          <Link href={`?page=${pageNumber + 1}`}><ArrowRight /></Link>
-        </Button>
+      <p className='text-2xl'>Статистика</p>
+      <div className='flex gap-2 flex-wrap'>
+        <Card>
+          <p className='text-xl'>Пользователи</p>
+          <CountUp className='text-2xl' duration={1} end={userCount} />
+        </Card>
+        <Card>
+          <p className='text-xl'>Задания</p>
+          <CountUp className='text-2xl' duration={1} end={taskCount} />
+        </Card>
+        <Card className='w-[100px]'>
+          <p className='text-xl'>Тесты</p>
+          <CountUp className='text-2xl' duration={1} end={testCount} />
+        </Card>
+        <Card>
+          <p className='text-xl w-min'>Завершено заданий</p>
+          <CountUp className='text-2xl' duration={1} end={taskCompletedCount} />
+        </Card>
       </div>
+      <Card>
+        <p className='mb-3'>Тесты по неделям</p>
+        <WeekChart data={weekData} />
+      </Card>
+      <Card>Пока на этом все :)</Card>
     </>
   );
 }
