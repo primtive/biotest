@@ -18,6 +18,7 @@ const FormSchema = z.object({
 
 export default function Home({ topics, topicGroupId }: { topics: Array<{ name: string, id: string, topicGroupId: string, topicGroup: { name: string } }>, topicGroupId: string }) {
   const [mode, setMode] = React.useState(false);
+  const [submitPressed, setSubmitPressed] = React.useState(false);
   const router = useRouter()
   const topicGroupName = topicGroupId == '67962669e4f21c30e05aef8b' ? 'ЕГЭ' : 'ОГЭ'
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -28,6 +29,8 @@ export default function Home({ topics, topicGroupId }: { topics: Array<{ name: s
   })
 
   async function start() {
+
+    setSubmitPressed(true);
 
     if (!mode) router.push('/t')
     const isSelected = await form.trigger('items')
@@ -115,7 +118,7 @@ export default function Home({ topics, topicGroupId }: { topics: Array<{ name: s
           </Form>
         </Card>}
       <div className="mx-2 pt-2">
-        <Button className="w-full text-lg h-10" onClick={() => start()}>Начать</Button>
+        <Button className="w-full text-lg h-10" onClick={() => start()} disabled={submitPressed}>Начать</Button>
       </div>
       {/* <hr /> */}
       {/* <Card> */}
