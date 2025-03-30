@@ -68,6 +68,7 @@ export const Test = ({ tasks, id, initTaskAnswers }: { tasks: Tasks, id: string,
   }, [taskIndex])
 
   return (
+    // <div className='max-w-[600px] space-y-3 mx-auto'>
     <>
       <Card className='flex justify-between'>
         <div className='flex gap-1 items-center'>
@@ -109,6 +110,7 @@ export const Test = ({ tasks, id, initTaskAnswers }: { tasks: Tasks, id: string,
           :
           <Task task={tasks[taskIndex]} onAnswer={onAnswer} />}
       </div>
+      {/* </div> */}
     </>
   )
 }

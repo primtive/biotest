@@ -68,7 +68,7 @@ export const TaskEdit = ({ data, id, onSave, el, topics, className }: { data?: a
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Темы</SelectLabel>
-              {topics.map(topic => <SelectItem value={topic.id}>{topic.name}</SelectItem>)}
+              {topics.map(topic => <SelectItem key={topic.id} value={topic.id}>{topic.name}</SelectItem>)}
             </SelectGroup>
           </SelectContent>
         </Select>

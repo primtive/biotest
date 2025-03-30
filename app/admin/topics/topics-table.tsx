@@ -154,7 +154,7 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
   }, [globalFilter, setFilter]);
 
   return (
-    <Card className="w-max max-w-fit">
+    <Card className="max-w-[800px] mx-auto">
       <GlobalFilter globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
       <TooltipProvider>
         <Table {...getTableProps()}>

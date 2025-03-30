@@ -41,7 +41,6 @@ export default function Home({ topics, topicGroupId }: { topics: Array<{ name: s
 
   return (
     <>
-      <hr />
       <div className="flex w-full gap-2 justify-evenly">
 
         <Card className="w-full flex flex-col items-center justify-between space-y-2">
@@ -117,13 +116,7 @@ export default function Home({ topics, topicGroupId }: { topics: Array<{ name: s
             </form>
           </Form>
         </Card>}
-      <div className="mx-2 pt-2">
-        <Button className="w-full text-lg h-10" onClick={() => start()} disabled={submitPressed}>Начать</Button>
-      </div>
-      {/* <hr /> */}
-      {/* <Card> */}
-      {/* Статистика */}
-      {/* </Card> */}
+      <Button className="w-full text-lg h-10" onClick={() => start()} disabled={submitPressed}>Начать</Button>
     </>
   );
 }

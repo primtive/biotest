@@ -16,7 +16,7 @@ import {
 export const Profile = () => {
   const { data: session } = useSession()
   return (
-    <Card>
+    <Card className=''>
       {session ?
         <TooltipProvider>
           <div className='flex items-center justify-between'>

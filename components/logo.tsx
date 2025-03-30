@@ -1,17 +1,17 @@
 import * as React from 'react';
-import { Bitter } from 'next/font/google';
+import { Nunito } from 'next/font/google';
+import Leaf from '@/public/leaf.svg'
+import Image from 'next/image';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
-const bitter = Bitter({
-  subsets: ['cyrillic'],
-  weight: '500'
-})
+const nunito = Nunito({subsets: ['cyrillic'], weight: '800'})
 
-export const Logo = () => {
+export const Logo = ({className, ...props}: {className?: string}) => {
   return (
-    <div className='w-full'>
-      <a href='/'>
-        <p className={`${bitter.className} text-4xl text-center`}>Биотест</p>
-      </a>
-    </div>
+      <Link href='/' className={cn('flex items-center gap-8 w-fit', className)} {...props}>
+        <Image src={Leaf} alt='' className='w-[40px] fill-current text-primary  ' />
+        <p className={`${nunito.className} text-3xl text-center select-none`}>Оренбио</p>
+      </Link>
   )
 }
