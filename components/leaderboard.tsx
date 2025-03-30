@@ -7,9 +7,8 @@ import { cn } from '@/lib/utils';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 
 
-export const Leaderboard = ({ data, initTopicGroupId, userId }: { data: Array<any>, initTopicGroupId: string, userId: string }) => {
-  const [topicGroupId, setTopicGroupId] = React.useState(initTopicGroupId);
-  console.log(topicGroupId);
+export const Leaderboard = ({ data, initTopicGroupId, userId }: { data: Array<any>, initTopicGroupId?: string, userId?: string }) => {
+  const [topicGroupId, setTopicGroupId] = React.useState(initTopicGroupId || '67962ae5e4f21c30e05aef91');
   return (
     <>
       <Card>
