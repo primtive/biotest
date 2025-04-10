@@ -4,15 +4,13 @@ import prisma from "@/data/prisma";
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const id = params.id || ''
-  const data = await request.json()
   const test = await prisma.test.update({
     where: {
       id
     },
     data: {
       completedAt: new Date(),
-      isComplete: true,
-      answers: data.map((answer: any) => ({ taskId: answer.id, answer: answer.userAnswer, correct: answer.correct == 1 }))
+      isComplete: true
     }
   })
   const user = await prisma.user.findFirstOrThrow({ where: { id: test.userId! } })

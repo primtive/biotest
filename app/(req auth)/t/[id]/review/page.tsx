@@ -20,7 +20,6 @@ export default async function ReviewPage({
       <p>Задания: </p>
       {test?.answers.map(async answer => {
         const task = await prisma.task.findFirst({ where: { id: answer.taskId }, include: { topic: true } })
-        console.log(task);
         return <Card>
           <p className='mb-1'>Тема: {task?.topic.name}</p>
           <div dangerouslySetInnerHTML={{ __html: task!.html }} className='mb-3' />

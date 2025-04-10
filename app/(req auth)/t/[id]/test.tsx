@@ -6,32 +6,14 @@ import { cn } from '@/lib/utils';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 
-enum AnswerCorrect {
+enum Answer {
   NotAnswered = 0,
   Correct = 1,
   Incorrect = 2
 }
 
 type AnswersBD = Array<{ taskId: string, answer: string, correct: boolean }>
-type Tasks = Array<{ id: string, html: string, answer: string, disordered: boolean }>
-
-const eqSet = (xs: any, ys: any) =>
-  xs.size === ys.size &&
-  [...xs].every((x) => ys.has(x));
-
-function checkAnswer(task: any, userAnswer: string, disordered: boolean): boolean {
-  if (task.answer == userAnswer) return true
-  for (const singleAnswer of task.answer.split(', ')) {
-    if (checkSingleAnswer(singleAnswer, userAnswer, disordered)) return true
-  }
-  return checkSingleAnswer(task.answer, userAnswer, disordered)
-}
-
-function checkSingleAnswer(correctAnswer: string, userAnswer: string, disordered: boolean) {
-  if (disordered) if (eqSet(new Set(userAnswer.toLowerCase().replace(/\s/g, '')), new Set(correctAnswer.toLowerCase().replace(/\s/g, '')))) return true
-  if (userAnswer.toLowerCase().replace(/\s/g, '') == correctAnswer.toLowerCase().replace(/\s/g, '')) return true
-  return false
-}
+type Tasks = Array<{ id: string, html: string }>
 
 
 export const Test = ({ tasks, id, initTaskAnswers }: { tasks: Tasks, id: string, initTaskAnswers: AnswersBD }) => {
@@ -42,20 +24,21 @@ export const Test = ({ tasks, id, initTaskAnswers }: { tasks: Tasks, id: string,
   const [taskIndex, setTaskIndex] = React.useState(initTaskAnswers ? initTaskAnswers.length : 0)
   const [taskAnswers, setTaskAnswers] = React.useState(tasks.map(task => {
     const taskAnswer = initTaskAnswers.find(x => x.taskId == task.id)
-    if (taskAnswer) return { id: task.id, answer: task.answer, userAnswer: taskAnswer.answer, correct: taskAnswer.correct ? AnswerCorrect.Correct : AnswerCorrect.Incorrect }
-    return { id: task.id, answer: task.answer, userAnswer: '', correct: AnswerCorrect.NotAnswered, disordered: task.disordered }
+    if (taskAnswer) return { id: task.id, userAnswer: taskAnswer.answer, correct: taskAnswer.correct ? Answer.Correct : Answer.Incorrect }
+    return { id: task.id, userAnswer: '', correct: Answer.NotAnswered }
   }))
   const [loading, setLoading] = React.useState(false);
 
-  function onAnswer(answer: string, taskId: string) {
+  async function onAnswer(answer: string) {
     let items = [...taskAnswers];
     items[taskIndex].userAnswer = answer;
-    items[taskIndex].correct = checkAnswer(items[taskIndex], answer, items[taskIndex].disordered!) ? AnswerCorrect.Correct : AnswerCorrect.Incorrect;
+    const res = await fetch(`/api/tasks/${items[taskIndex].id}/complete`,
+      { method: 'POST', body: JSON.stringify({ ...items[taskIndex], testId: id }) }
+    )
+    const data = await res.json()
+    items[taskIndex].correct = data.correct ? Answer.Correct : Answer.Incorrect;
     setTaskAnswers(items);
     setTaskIndex(taskIndex + 1)
-    fetch(`/api/complete-task/${id}`,
-      { method: 'POST', body: JSON.stringify(taskAnswers.filter(x => x.correct != AnswerCorrect.NotAnswered)) }
-    )
   }
 
   React.useEffect(() => {
@@ -75,13 +58,13 @@ export const Test = ({ tasks, id, initTaskAnswers }: { tasks: Tasks, id: string,
           {taskAnswers.map(task => {
             var color;
             switch (task.correct) {
-              case AnswerCorrect.NotAnswered:
+              case Answer.NotAnswered:
                 color = 'bg-slate-300'
                 break
-              case AnswerCorrect.Correct:
+              case Answer.Correct:
                 color = 'bg-green-600'
                 break
-              case AnswerCorrect.Incorrect:
+              case Answer.Incorrect:
                 color = 'bg-red-500'
                 break
             }

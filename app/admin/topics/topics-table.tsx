@@ -40,7 +40,6 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
   const router = useRouter();
 
   function topicSave(values: any) {
-    console.log(values);
     if (values.id) {
       fetch(`/api/topics/${values.id}`, {
         method: 'POST',
@@ -70,7 +69,6 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
   }
 
   function deleteTopic(id: string) {
-    console.log(id);
     fetch(`/api/topics/${id}`, {
       method: 'DELETE'
     }).then(x => window.location.reload())

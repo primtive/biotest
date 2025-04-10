@@ -11,7 +11,6 @@ export async function POST(request: Request, props: { params: Promise<{ userId: 
     createdAt: new Date(),
     testId: ''
   })
-  console.log(user?.scores);
   await prisma.user.update({
     where: { id: userId },
     data: {

@@ -44,7 +44,6 @@ export const TasksTable = ({ initTopics }: any) => {
       body: JSON.stringify(values)
     });
     if (response.status == 200) {
-      console.log('ok');
       fetchData(pageIndex)
     }
     else {
@@ -53,7 +52,6 @@ export const TasksTable = ({ initTopics }: any) => {
   }
 
   function deleteTask(id: string) {
-    console.log(id);
     fetch(`/api/tasks/${id}`, {
       method: 'DELETE'
     }).then(x => fetchData(pageIndex))
@@ -61,7 +59,6 @@ export const TasksTable = ({ initTopics }: any) => {
 
   useEffect(() => {
     fetchData(pageIndex);
-    console.log(pageIndex);
   }, [pageIndex, topics]);
 
   const columns = React.useMemo(
