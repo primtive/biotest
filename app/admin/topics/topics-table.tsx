@@ -1,6 +1,12 @@
 "use client"
 import React, { ReactNode, useMemo, useState } from "react";
-import { useTable, useGlobalFilter } from "react-table";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  ColumnDef,
+  flexRender,
+} from "@tanstack/react-table";
 import { Check, CheckCircle, Lock, NotepadText, Pencil, PercentCircle, Trash, Trash2, X } from "lucide-react";
 import {
   Table,
@@ -22,12 +28,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 
-const GlobalFilter = ({ globalFilter, setGlobalFilter }: any) => {
+const GlobalFilter = ({ globalFilter, setGlobalFilter }: { globalFilter: string, setGlobalFilter: (value: string) => void }) => {
   return (
     <Input
       type="text"
       value={globalFilter || ""}
-      onChange={(e) => setGlobalFilter(e.target.value || undefined)}
+      onChange={(e) => setGlobalFilter(e.target.value)}
       placeholder="Название темы"
       style={{ marginBottom: "10px", padding: "8px", width: "100%", background: "var(--background)" }}
     />
@@ -48,12 +54,6 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
         if (x.status == 200) window.location.reload()
         else alert(x.statusText)
       })
-      // const topicIndex = topics.findIndex(u => u.id == values.id!)
-      // if (topicIndex !== -1) {
-      // const newTopics = [...topics];
-      // newTopics[topicIndex] = { ...topics[topicIndex], ...values };
-      // setTopics(newTopics);
-      // }
     } else {
       fetch(`/api/topics/new`, {
         method: 'POST',
@@ -62,9 +62,6 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
         if (x.status == 200) window.location.reload()
         else alert(x.statusText)
       })
-      // .then(x => x.json()).then(res => {
-      //   setTopics([...topics, { ...values, id: res.id }]);
-      // })
     }
   }
 
@@ -74,24 +71,25 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
     }).then(x => window.location.reload())
   }
 
-  const columns = useMemo(
+  const columns = useMemo<ColumnDef<any>[]>(
     () => [
       {
-        Header: "Название темы",
-        accessor: "name",
+        header: "Название темы",
+        accessorKey: "name",
       },
       {
-        Header: "Группа",
-        accessor: "topicGroup.name",
+        header: "Группа",
+        accessorKey: "topicGroup.name",
       },
       {
-        Header: "Кол-во",
-        accessor: "count",
+        header: "Кол-во",
+        accessorKey: "count",
       },
       {
-        accessor: 'active',
-        Cell: ({ row }: any) => (
-          row.values.active
+        accessorKey: 'active',
+        header: '',
+        cell: ({ row }) => (
+          row.getValue('active')
             ?
             <Check className="w-5 h-5" />
             :
@@ -99,15 +97,17 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
         )
       },
       {
-        accessor: "id",
-        Cell: ({ row }: any) => (
-          <TopicEdit el={<Pencil className="w-5 h-5" />} data={row.values} id={row.values.id} onSave={topicSave} />
+        accessorKey: "id",
+        header: '',
+        cell: ({ row }) => (
+          <TopicEdit el={<Pencil className="w-5 h-5" />} data={row.original} id={row.getValue('id')} onSave={topicSave} />
         ),
       },
       {
-        accessor: "topicGroupId",
-        Cell: ({ row }: any) => (
-          row.values.count != 0
+        accessorKey: "topicGroupId",
+        header: '',
+        cell: ({ row }) => (
+          row.getValue('count') != 0
             ?
             <Trash2 className="text-muted-foreground w-5 h-5" />
             :
@@ -121,7 +121,7 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Отмена</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => deleteTopic(row.values.id)}>Удалить</AlertDialogAction>
+                  <AlertDialogAction onClick={() => deleteTopic(row.getValue('id'))}>Удалить</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -131,59 +131,63 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
     []
   );
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    state,
-    setGlobalFilter: setFilter,
-  } = useTable(
-    {
-      columns,
-      data: topics
-    } as any,
-    useGlobalFilter
-  );
-
-  React.useEffect(() => {
-    setFilter(globalFilter);
-  }, [globalFilter, setFilter]);
+  const table = useReactTable({
+    data: topics,
+    columns,
+    state: {
+      globalFilter,
+    },
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+  });
 
   return (
     <Card className="max-w-[800px] mx-auto">
       <GlobalFilter globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
       <TooltipProvider>
-        <Table {...getTableProps()}>
+        <Table>
           <TableHeader>
-            {headerGroups.map((headerGroup: any, i) => {
-              const { key, props } = headerGroup.getHeaderGroupProps();
-              return <TableRow key={key} {...props}>
-                {headerGroup.headers.map((column: any, j: number) => {
-                  const { key, props } = column.getHeaderProps();
-                  return <TableHead key={key} {...props}>
-                    {column.render("Header")}
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                   </TableHead>
-                })}
+                ))}
               </TableRow>
-            })}
+            ))}
           </TableHeader>
-          <TableBody {...getTableBodyProps()}>
-            {rows.map((row: any) => {
-              prepareRow(row);
-              const { key, props } = row.getRowProps();
-              return (
-                <TableRow key={key} {...props}>
-                  {row.cells.map((cell: any, j: number) => {
-                    const { key_, props } = cell.getCellProps();
-                    return <TableCell key={key_} {...props} className="">
-                      {cell.render("Cell")}
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
-                  })}
+                  ))}
                 </TableRow>
-              );
-            })}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  Нет данных
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
           <TableFooter>
             <TableRow>

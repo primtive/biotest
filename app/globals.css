@@ -44,6 +44,27 @@ body {
     --border: 145 20% 90%;
     --input: 145 20% 80%;
     --ring: 145 51% 26%;
+
+    /* --background: 330, 100%, 98%; */
+    /* --foreground: 330, 100%, 10%; */
+    /* --card: 330, 100%, 93%; */
+    /* --card-foreground: 330, 100%, 15%; */
+    /* --popover: 330, 100%, 95%; */
+    /* --popover-foreground: 330, 100%, 10%; */
+    /* --primary: 330, 100%, 50%; */
+    /* --primary-foreground: 0, 0%, 100%; */
+    /* --secondary: 330, 80%, 80%; */
+    /* --secondary-foreground: 0, 0%, 0%; */
+    /* --muted: 330, 60%, 90%; */
+    /* --muted-foreground: 330, 20%, 40%; */
+    /* --accent: 330, 100%, 70%; */
+    /* --accent-foreground: 330, 100%, 15%; */
+    /* --destructive: 0, 100%, 50%; */
+    /* --destructive-foreground: 330, 0%, 90%; */
+    /* --border: 330, 100%, 85%; */
+    /* --input: 330, 100%, 80%; */
+    /* --ring: 330, 100%, 50%; */
+
     --radius: 0.5rem;
     --chart-1: 0 0% 0%;
     --sidebar-background: 0 0% 98%;

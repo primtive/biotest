@@ -6,11 +6,7 @@ import { getServerSession } from "next-auth/next";
 import { getLeaderboard, getUserLastTest } from "@/data/users";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
-
-const topicGroups = [
-  { topicGroupId: '67962ae5e4f21c30e05aef91', name: 'ОГЭ' },
-  { topicGroupId: '67962669e4f21c30e05aef8b', name: 'ЕГЭ' },
-]
+import topicGroups from "@/data/topicGroups";
 
 export default async function Index() {
   const session = await getServerSession(authOptions)

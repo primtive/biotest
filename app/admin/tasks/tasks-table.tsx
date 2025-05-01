@@ -3,33 +3,29 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, ArrowRight, Check, Pencil, Trash2, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { useTable, usePagination } from 'react-table';
-import { TaskEdit } from './task-edit';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  ColumnDef,
+  flexRender,
+} from '@tanstack/react-table';
+import { TaskEdit } from './task-edit';
 import { MultiSelect } from '@/components/multi-select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export const TasksTable = ({ initTopics }: any) => {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<any[]>([]);
   const [pageCount, setPageCount] = useState(1);
   const [loading, setLoading] = useState(true);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize,] = useState(20);
-  const [topics, setTopics] = useState<Array<String>>([]);
+  const [topics, setTopics] = useState<Array<string>>([]);
 
   const formatHtml = (html: string) => html.replace(/<[^>]*>/g, '').split(' ').slice(0, 8).join(' ') + '...'
 
   const fetchData = async (pageIndex: number) => {
-    // setLoading(true);
     const response = await fetch(`/api/tasks?page_index=${pageIndex}&page_size=${pageSize}&topics=${topics.join(',')}`);
     const result = await response.json();
 
@@ -61,88 +57,97 @@ export const TasksTable = ({ initTopics }: any) => {
     fetchData(pageIndex);
   }, [pageIndex, topics]);
 
-  const columns = React.useMemo(
+  const columns = useMemo<ColumnDef<any>[]>(
     () => [
       {
-        Header: 'Задание',
-        accessor: (row: any) => <div /* className='truncate w-20' */ dangerouslySetInnerHTML={{ __html: formatHtml(row.html) }}></div>,
-      },
-      {
-        Header: 'Тема',
-        id: 'topic',
-        accessor: (row: any) => row.topic.name,
-      },
-      {
-        Header: 'Ответ',
-        accessor: 'answer',
-      },
-      {
-        accessor: (row: any) => (row.active
-          ?
-          <Check />
-          :
-          <X />
+        header: 'Задание',
+        cell: ({ row }) => (
+          <div dangerouslySetInnerHTML={{ __html: formatHtml(row.original.html) }} />
         ),
-        id: 'active'
       },
       {
-        Header: '',
-        id: 'id',
-        accessor: (row: any) => <TaskEdit topics={initTopics} data={row} onSave={saveTask} id={row.id} el={<Pencil className="w-5 h-5" />} />
+        header: 'Тема',
+        accessorKey: 'topic.name',
       },
       {
-        id: 'delete',
-        accessor: (row: any) => <AlertDialog>
-          <AlertDialogTrigger className="cursor-pointer" asChild>
-            <Trash2 className="w-5 h-5" />
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Удалить задание?</AlertDialogTitle>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Отмена</AlertDialogCancel>
-              <AlertDialogAction onClick={() => deleteTask(row.id)}>Удалить</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        header: 'Ответ',
+        accessorKey: 'answer',
+      },
+      {
+        header: 'Активен',
+        accessorKey: 'active',
+        cell: ({ row }) => (
+          row.getValue('active') ? <Check /> : <X />
+        ),
+      },
+      {
+        header: '',
+        accessorKey: 'id',
+        cell: ({ row }) => (
+          <TaskEdit 
+            topics={initTopics} 
+            data={row.original} 
+            onSave={saveTask} 
+            id={row.getValue('id')} 
+            el={<Pencil className="w-5 h-5" />} 
+          />
+        ),
+      },
+      {
+        header: '',
+        accessorKey: 'delete',
+        cell: ({ row }) => (
+          <AlertDialog>
+            <AlertDialogTrigger className="cursor-pointer" asChild>
+              <Trash2 className="w-5 h-5" />
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Удалить задание?</AlertDialogTitle>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                <AlertDialogAction onClick={() => deleteTask(row.getValue('id'))}>
+                  Удалить
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ),
       }
     ],
-    []
+    [initTopics]
   );
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    canPreviousPage,
-    canNextPage,
-    pageOptions,
-    gotoPage,
-    nextPage,
-    previousPage,
-    setPageSize,
-  } = useTable(
-    {
-      columns,
-      data,
-      manualPagination: true,
-      pageCount,
-      initialState: { pageIndex: 0 },
+  const table = useReactTable({
+    data,
+    columns,
+    pageCount,
+    manualPagination: true,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
     },
-    usePagination
-  );
+    onPaginationChange: (updater) => {
+      if (typeof updater === 'function') {
+        const newState = updater({ pageIndex, pageSize });
+        setPageIndex(newState.pageIndex);
+      }
+    },
+  });
 
   const handleNext = () => {
-    nextPage()
-    setPageIndex(prevPage => prevPage + 1);
+    table.nextPage();
+    setPageIndex(prev => prev + 1);
   };
 
   const handlePrev = () => {
-    previousPage()
-    setPageIndex(prevPage => Math.max(prevPage - 1, 1)); // Не позволяйте странице быть меньше 1
+    table.previousPage();
+    setPageIndex(prev => Math.max(prev - 1, 0));
   };
 
   return (
@@ -150,10 +155,9 @@ export const TasksTable = ({ initTopics }: any) => {
       <MultiSelect
         options={initTopics.map((topic: any) => ({ value: topic.id, label: topic.name }))}
         onValueChange={(values) => {
-          setPageIndex(0)
-          setTopics(values)
+          setPageIndex(0);
+          setTopics(values);
         }}
-        // defaultValue={field.value}
         placeholder="Выберите темы"
         variant="inverted"
         animation={2}
@@ -164,36 +168,51 @@ export const TasksTable = ({ initTopics }: any) => {
         <p>Загрузка...</p>
       ) : (
         <>
-          <Table {...getTableProps()}>
+          <Table>
             <TableHeader>
-              {headerGroups.map(headerGroup => (
-                <TableRow {...headerGroup.getHeaderGroupProps()}>
-                  {headerGroup.headers.map(column => (
-                    <TableHead {...column.getHeaderProps()}>
-                      {column.render('Header')}
+              {table.getHeaderGroups().map(headerGroup => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <TableHead key={header.id}>
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                     </TableHead>
                   ))}
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody {...getTableBodyProps()}>
-              {rows.map(row => {
-                prepareRow(row);
-                return (
-                  <TableRow {...row.getRowProps()}>
-                    {row.cells.map(cell => (
-                      <TableCell {...cell.getCellProps()}>
-                        {cell.render('Cell')}
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map(row => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map(cell => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
-                );
-              })}
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    Нет данных
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
 
           <div className='flex items-center gap-3'>
-            <Button onClick={() => handlePrev()} disabled={!canPreviousPage} className='h-min p-2'>
+            <Button 
+              onClick={() => handlePrev()} 
+              disabled={!table.getCanPreviousPage()} 
+              className='h-min p-2'
+            >
               <ArrowLeft />
             </Button>
             <span>
@@ -202,10 +221,19 @@ export const TasksTable = ({ initTopics }: any) => {
                 {pageIndex + 1} из {pageCount}
               </strong>{' '}
             </span>
-            <Button onClick={() => handleNext()} disabled={!canNextPage} className='h-min p-2'>
+            <Button 
+              onClick={() => handleNext()} 
+              disabled={!table.getCanNextPage()} 
+              className='h-min p-2'
+            >
               <ArrowRight />
             </Button>
-            <TaskEdit topics={initTopics} el={<Button>Создать</Button>} onSave={saveTask} data={{ answer: '' }} />
+            <TaskEdit 
+              topics={initTopics} 
+              el={<Button>Создать</Button>} 
+              onSave={saveTask} 
+              data={{ answer: '' }} 
+            />
           </div>
         </>
       )}

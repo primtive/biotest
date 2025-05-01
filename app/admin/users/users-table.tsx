@@ -1,13 +1,10 @@
 "use client"
-import React, { ReactNode, useMemo, useState } from "react";
-import { useTable, useGlobalFilter } from "react-table";
-import { CheckCircle, Lock, NotepadText, Pencil, PercentCircle, Trash2 } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { CheckCircle, Lock, NotepadText, Pencil, PercentCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -27,29 +24,25 @@ import { Card } from "@/components/ui/card";
 import User from "@/data/models/user";
 import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { UserEdit } from "./user-edit";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { UserBadge } from "@/components/user-badge";
-
-const GlobalFilter = ({ globalFilter, setGlobalFilter }: any) => {
-  return (
-    <Input
-      type="text"
-      value={globalFilter || ""}
-      onChange={(e) => setGlobalFilter(e.target.value || undefined)}
-      placeholder="Имя пользователя | имя"
-      style={{ marginBottom: "10px", padding: "8px", width: "100%", background: "var(--background)" }}
-    />
-  );
-};
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  ColumnDef,
+  flexRender,
+  ColumnFiltersState,
+} from '@tanstack/react-table';
 
 const UserTable = (data: { users: Array<User> }) => {
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
+  const [usernameFilter, setUsernameFilter] = useState("");
   const [users, setUsers] = useState<Array<User>>(data.users);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   function onUserSave(values: { id?: string, name: string, username: string }) {
     if (values.id) {
@@ -80,159 +73,260 @@ const UserTable = (data: { users: Array<User> }) => {
     setUsers([...users].filter(u => u.id != id));
   }
 
-  const columns = useMemo(
+  React.useEffect(() => {
+    const newFilters = [];
+    if (nameFilter) {
+      newFilters.push({
+        id: 'name',
+        value: nameFilter
+      });
+    }
+    if (usernameFilter) {
+      newFilters.push({
+        id: 'username',
+        value: usernameFilter
+      });
+    }
+    setColumnFilters(newFilters);
+  }, [nameFilter, usernameFilter]);
+
+  const columns = useMemo<ColumnDef<User>[]>(
     () => [
       {
-        Header: "Имя пользователя",
-        accessor: "username",
-        Cell: ({ row }: any) => <UserBadge username={row.values.username} />,
+        header: "Имя пользователя",
+        accessorKey: "username",
+        cell: ({ row }) => <UserBadge username={row.getValue('username')} />,
       },
       {
-        Header: "Имя",
-        accessor: "name",
+        header: "Имя",
+        accessorKey: "name",
       },
       {
-        Header: "Группа",
-        accessor: "topicGroup.name"
+        header: "Группа",
+        accessorKey: "topicGroup.name"
       },
       {
-        Header: () => <Tooltip>
-          <TooltipTrigger asChild>
-            <NotepadText className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Количество пройденных тестов</p>
-          </TooltipContent>
-        </Tooltip>,
-        accessor: "testsCount"
+        header: () => (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <NotepadText className="h-4 w-4" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Количество пройденных тестов</p>
+            </TooltipContent>
+          </Tooltip>
+        ),
+        accessorKey: "testsCount"
       },
       {
-        Header: () => <Tooltip>
-          <TooltipTrigger asChild>
-            <CheckCircle className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Количество правильно выполненных заданий</p>
-          </TooltipContent>
-        </Tooltip>,
-        accessor: "score"
+        header: () => (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <CheckCircle className="h-4 w-4" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Количество правильно выполненных заданий</p>
+            </TooltipContent>
+          </Tooltip>
+        ),
+        accessorKey: "score"
       },
       {
-        Header: () => <Tooltip>
-          <TooltipTrigger asChild>
-            <PercentCircle className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Процент правильных заданий за последние 10 тестов</p>
-          </TooltipContent>
-        </Tooltip>,
-        accessor: "percent"
+        header: () => (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PercentCircle className="h-4 w-4" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Процент правильных заданий за последние 10 тестов</p>
+            </TooltipContent>
+          </Tooltip>
+        ),
+        accessorKey: "percent"
       },
       {
-        accessor: "admin",
-        Cell: ({ row }: any) => (
-          row.values.admin && <Lock className="text-muted-foreground w-5 h-5" />
+        accessorKey: "admin",
+        header: '',
+        cell: ({ row }) => (
+          row.getValue('admin') && <Lock className="text-muted-foreground w-5 h-5" />
         ),
       },
       {
-        accessor: "id",
-        Cell: ({ row }: any) => (
-          row.values.admin
-            ?
-            <Pencil className="text-muted-foreground w-5 h-5" />
-            :
-            <UserEdit el={<Pencil className="w-5 h-5" />} data={row.values} id={row.values.id} onSave={onUserSave} />
+        accessorKey: "id",
+        header: '',
+        cell: ({ row }) => (
+          row.getValue('admin')
+            ? <Pencil className="text-muted-foreground w-5 h-5" />
+            : <UserEdit el={<Pencil className="w-5 h-5" />} data={row.original} id={row.getValue('id')} onSave={onUserSave} />
         ),
       },
       {
-        Cell: ({ row }: any) => (
-          row.values.admin
-            ?
-            <Trash2 className="text-muted-foreground w-5 h-5" />
-            :
-            <AlertDialog>
-              <AlertDialogTrigger className="cursor-pointer" asChild>
-                <Trash2 className="w-5 h-5" />
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Удалить пользователя?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Все данные о прохождении тестов будут удалены
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Отмена</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => deleteUser(row.values.id)}>Удалить</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+        accessorKey: "topicGroupId",
+        header: '',
+        cell: ({ row }) => (
+          row.getValue('admin')
+            ? <Trash2 className="text-muted-foreground w-5 h-5" />
+            : (
+              <AlertDialog>
+                <AlertDialogTrigger className="cursor-pointer" asChild>
+                  <Trash2 className="w-5 h-5" />
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Удалить пользователя?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Все данные о прохождении тестов будут удалены
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Отмена</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => deleteUser(row.getValue('id'))}>
+                      Удалить
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )
         ),
-        accessor: 'topicGroupId'
       }
     ],
     []
   );
 
-  // const data = useMemo(() => users, [users]);
-
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    state,
-    setGlobalFilter: setFilter,
-  } = useTable(
-    {
-      columns,
-      data: users
-    } as any,
-    useGlobalFilter
-  );
-
-  React.useEffect(() => {
-    setFilter(globalFilter);
-  }, [globalFilter, setFilter]);
+  const table = useReactTable({
+    data: users,
+    columns,
+    state: {
+      columnFilters,
+    },
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 20,
+      },
+    },
+  });
 
   return (
-    <Card className=" space-y-2">
-      <UserEdit className="w-full" el={<a className={cn("w-full", buttonVariants({ variant: "default" }))}>Создать</a>} data={{}} onSave={onUserSave} />
-      <GlobalFilter globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
+    <Card className="space-y-4 p-4">
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <Input
+            type="text"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+            placeholder="Фильтр по имени"
+            className="w-full"
+          />
+        </div>
+        <div className="flex-1">
+          <Input
+            type="text"
+            value={usernameFilter}
+            onChange={(e) => setUsernameFilter(e.target.value)}
+            placeholder="Фильтр по имени пользователя"
+            className="w-full"
+          />
+        </div>
+        <div className="flex-1">
+          <UserEdit 
+            className="w-full" 
+            el={<Button className="w-full">Создать пользователя</Button>} 
+            data={{}} 
+            onSave={onUserSave} 
+          />
+        </div>
+      </div>
+
       <TooltipProvider>
-        <Table {...getTableProps()}>
+        <Table>
           <TableHeader>
-            {headerGroups.map((headerGroup: any, i) => {
-              const { key, props } = headerGroup.getHeaderGroupProps();
-              return <TableRow key={key} {...props}>
-                {headerGroup.headers.map((column: any, j: number) => {
-                  const { key, props } = column.getHeaderProps();
-                  return <TableHead key={key} {...props}>
-                    {column.render("Header")}
+            {table.getHeaderGroups().map(headerGroup => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <TableHead key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                   </TableHead>
-                })}
+                ))}
               </TableRow>
-            })}
+            ))}
           </TableHeader>
-          <TableBody {...getTableBodyProps()}>
-            {rows.map((row: any) => {
-              prepareRow(row);
-              const { key, props } = row.getRowProps();
-              return (
-                <TableRow key={key} {...props}>
-                  {row.cells.map((cell: any, j: number) => {
-                    const { key_, props } = cell.getCellProps();
-                    return <TableCell key={key_} {...props}>
-                      {cell.render("Cell")}
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map(row => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map(cell => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
-                  })}
+                  ))}
                 </TableRow>
-              );
-            })}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  Нет данных
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TooltipProvider>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between px-2">
+        <div className="flex-1 text-sm text-muted-foreground">
+          Показано {table.getRowModel().rows.length} из {users.length} пользователей
+        </div>
+        <div className="flex items-center space-x-6 lg:space-x-8">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              className="h-8 w-8 p-0"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+              {table.getState().pagination.pageIndex + 1} из{' '}
+              {table.getPageCount()}
+            </div>
+            <Button
+              variant="outline"
+              className="h-8 w-8 p-0"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-center space-x-2">
+            <select
+              className="h-8 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors"
+              value={table.getState().pagination.pageSize}
+              onChange={(e) => {
+                table.setPageSize(Number(e.target.value))
+              }}
+            >
+              {[10, 20, 30, 40, 50].map((pageSize) => (
+                <option key={pageSize} value={pageSize}>
+                  Показать {pageSize}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
     </Card>
   );
 };

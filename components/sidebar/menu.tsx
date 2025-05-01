@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Goal, LogIn, LogOut, Minus } from "lucide-react";
+import { BookOpenText, Goal, LogIn, LogOut, Minus, NotepadText, SquareAsterisk } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { BookCheck, BookMarked, ChartArea, History, Mails, Users, House } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,7 +52,17 @@ export function Menu({ isOpen, isSheetMenu }: MenuProps) {
           href: "/stats",
           label: "Статистика",
           icon: ChartArea
-        }
+        },
+        // {
+        //   href: "/wiki",
+        //   label: "Вики",
+        //   icon: BookOpenText
+        // },
+        ...(session.user.id === '678017cadefdce0d7375bf07' || session.user.id === '6784f9d99bbfbb23d367b5e0' ? [{
+          href: "/secret",
+          label: "Секретные функции",
+          icon: SquareAsterisk
+        }] : [])
       ]
     }] : [
       {
@@ -93,6 +103,11 @@ export function Menu({ isOpen, isSheetMenu }: MenuProps) {
           label: "Статистика",
           href: "/admin/stats",
           icon: ChartArea,
+        },
+        {
+          label: "Отчеты",
+          href: "/admin/reports",
+          icon: NotepadText,
         },
         // {
         // label: "Цели",
