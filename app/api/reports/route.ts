@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   const topicGroup = params.get('topicGroup')
   if (!topicGroup) return NextResponse.json({ message: 'topicGroup not specified' }, { status: 400 })
 
-  // const completedOnly = params.get('completedOnly')
+  const completedOnly = params.has('completedOnly')
 
   const selectedGroupIds = []
   switch (topicGroup) {
@@ -66,9 +66,9 @@ export async function GET(request: NextRequest) {
                         { $dateFromString: { dateString: to, } }
                       ]
                     },
-                    // ...(completedOnly ? [
-                    //   { $eq: ["$isComplete", true] }
-                    // ] : [])
+                    ...(completedOnly ? [
+                      { $eq: ["$isComplete", true] }
+                    ] : [])
                   ]
                 }
               }

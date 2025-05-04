@@ -212,33 +212,27 @@ const UserTable = (data: { users: Array<User> }) => {
 
   return (
     <Card className="space-y-4 p-4">
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <Input
-            type="text"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            placeholder="Фильтр по имени"
-            className="w-full"
-          />
-        </div>
-        <div className="flex-1">
-          <Input
-            type="text"
-            value={usernameFilter}
-            onChange={(e) => setUsernameFilter(e.target.value)}
-            placeholder="Фильтр по имени пользователя"
-            className="w-full"
-          />
-        </div>
-        <div className="flex-1">
-          <UserEdit 
-            className="w-full" 
-            el={<Button className="w-full">Создать пользователя</Button>} 
-            data={{}} 
-            onSave={onUserSave} 
-          />
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Input
+          type="text"
+          value={nameFilter}
+          onChange={(e) => setNameFilter(e.target.value)}
+          placeholder="Фильтр по имени"
+          className="w-full"
+        />
+        <Input
+          type="text"
+          value={usernameFilter}
+          onChange={(e) => setUsernameFilter(e.target.value)}
+          placeholder="Фильтр по имени пользователя"
+          className="w-full"
+        />
+        <UserEdit
+          className="w-full"
+          el={<Button className="w-full">Создать пользователя</Button>}
+          data={{}}
+          onSave={onUserSave}
+        />
       </div>
 
       <TooltipProvider>
@@ -283,7 +277,7 @@ const UserTable = (data: { users: Array<User> }) => {
       </TooltipProvider>
 
       {/* Pagination Controls */}
-      <div className="flex items-center justify-between px-2">
+      <div className="flex flex-wrap gap-3 items-center justify-between px-2">
         <div className="flex-1 text-sm text-muted-foreground">
           Показано {table.getRowModel().rows.length} из {users.length} пользователей
         </div>
@@ -297,7 +291,7 @@ const UserTable = (data: { users: Array<User> }) => {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+            <div className="flex w-[50px] items-center justify-center text-sm font-medium">
               {table.getState().pagination.pageIndex + 1} из{' '}
               {table.getPageCount()}
             </div>

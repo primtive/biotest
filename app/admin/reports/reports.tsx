@@ -39,7 +39,7 @@ const Reports = () => {
   const [topicGroup, setTopicGroup] = useState<string>('all')
   const [mode, setMode] = useState<string>('week')
   const [isPending, setPending] = useState(false)
-  // const [completedOnly, setCompletedOnly] = useState<boolean>(true);
+  const [completedOnly, setCompletedOnly] = useState<boolean>(true);
 
   const getDateRange = (range: string): DateRange => {
     const now = new Date(); // или dayjs() если используете dayjs
@@ -99,8 +99,7 @@ const Reports = () => {
       return
     }
 
-    // fetch(`/api/reports?from=${moment(period.from).format('YYYY-MM-DD')}&to=${moment(period.to).format('YYYY-MM-DD')}&topicGroup=${topicGroup}&completedOnly=${completedOnly}`)
-    fetch(`/api/reports?from=${moment(period.from).format('YYYY-MM-DD')}&to=${moment(period.to).format('YYYY-MM-DD')}&topicGroup=${topicGroup}`)
+    fetch(`/api/reports?from=${moment(period.from).format('YYYY-MM-DD')}&to=${moment(period.to).format('YYYY-MM-DD')}&topicGroup=${topicGroup}${completedOnly ? '&completedOnly' : ''}`)
       .then(x => x.json()).then(res => {
         setPending(false)
         if (res.message) {
@@ -161,10 +160,10 @@ const Reports = () => {
               </SelectGroup>
             </SelectContent>
           </Select>
-          {/* <div className="flex items-center gap-3"> */}
-          {/* <Checkbox id="completed-only" onCheckedChange={(v) => setCompletedOnly(Boolean(v))} checked={completedOnly} /> */}
-          {/* <Label htmlFor="completed-only">Только завершенные тесты</Label> */}
-          {/* </div> */}
+          <div className="flex items-center gap-3">
+            <Checkbox id="completed-only" onCheckedChange={(v) => setCompletedOnly(Boolean(v))} checked={completedOnly} />
+            <Label htmlFor="completed-only">Только завершенные тесты</Label>
+          </div>
           <Button onClick={getData} variant={"secondary"} disabled={isPending}>Сформировать</Button>
         </div>
         <div className="grid grid-cols-2 gap-3 justify-center content-center items-center w-fit">
