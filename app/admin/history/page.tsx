@@ -26,6 +26,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: any 
   const lastTests = await prisma.test.findMany({
     take: -pageSize,
     include: { user: true, topicGroup: true },
+    where: { user: { isArchive: false } },
     orderBy: { createdAt: 'asc' },
     skip: (pageNumber - 1) * pageSize,
   })

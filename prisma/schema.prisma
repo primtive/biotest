@@ -28,6 +28,7 @@ model User {
   streak           Int        @default(0)
   lastStreakUpdate DateTime?
   percent          Int        @default(0)
+  isArchive        Boolean    @default(false)
   tests            Test[]
   topicGroup       TopicGroup @relation(fields: [topicGroupId], references: [id])
   topicGroupId     String     @db.ObjectId

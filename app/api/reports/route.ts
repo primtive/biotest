@@ -99,12 +99,18 @@ export async function GET(request: NextRequest) {
           _id: 1,
           username: 1,
           name: 1,
+          isArchive: 1,
           topicGroupId: 1,
           filteredTests: 1,
           testCount: { $size: { $ifNull: ["$filteredTests", []] } },
           score: {
             $sum: "$filteredTests.correctAnswers"
           }
+        }
+      },
+      {
+        $match: {
+          isArchive: false
         }
       },
       // Шаг 6: Сортировка (например, по количеству тестов)

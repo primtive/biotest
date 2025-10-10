@@ -44,7 +44,7 @@ const UserTable = (data: { users: Array<User> }) => {
   const [users, setUsers] = useState<Array<User>>(data.users);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  function onUserSave(values: { id?: string, name: string, username: string }) {
+  function onUserSave(values: { id?: string, name: string, username: string, admin: boolean, isArchive: boolean }) {
     if (values.id) {
       fetch(`/api/users/${values.id}`, {
         method: 'POST',
@@ -254,7 +254,7 @@ const UserTable = (data: { users: Array<User> }) => {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map(row => (
-                <TableRow key={row.id}>
+                <TableRow key={row.id} className={`${row.original.isArchive ? 'opacity-50' : ''}`}>
                   {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id}>
                       {flexRender(

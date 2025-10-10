@@ -6,7 +6,6 @@ import { getServerSession } from "next-auth";
 import authOptions from "@/auth";
 import SidebarLayout from "@/components/sidebar/sidebar-layout";
 import { Navbar } from "@/components/sidebar/navbar";
-import Particles from "@/components/particles";
 
 const font = Montserrat({
   subsets: ["cyrillic"],
@@ -35,7 +34,6 @@ export default async function RootLayout({
                 {children}
               </div>
             </div>
-            <Particles />
           </SidebarLayout>
         </Providers>
       </body>

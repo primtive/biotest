@@ -14,11 +14,13 @@ import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?: string, onSave: (values: any) => void, el: React.ReactNode, className?: string }) => {
   const [name, setName] = React.useState(data?.name)
   const [username, setUsername] = React.useState(data?.username)
   const [topicGroupId, setTopicGroupId] = React.useState(data?.topicGroupId)
+  const [isArchive, setIsArchive] = React.useState(data?.isArchive)
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -39,7 +41,7 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
         <Input id='username' value={username} onChange={(e) => setUsername(e.target.value)} />
 
         <Label>Группа заданий</Label>
-        <Select defaultValue={topicGroupId} onValueChange={(val) => setTopicGroupId(val)}>
+        <Select defaultValue={topicGroupId} onValueChange={(val: string) => setTopicGroupId(val)}>
           <SelectTrigger className="w-[300px]">
             <SelectValue placeholder="Выберите группу заданий" />
           </SelectTrigger>
@@ -51,7 +53,12 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
           </SelectContent>
         </Select>
 
-        <Button onClick={() => { onSave({ name, username, id, topicGroupId }); setOpen(false) }}>Сохранить</Button>
+        <div className='flex gap-2'>
+          <Checkbox id='active' checked={isArchive} onCheckedChange={(val: boolean) => setIsArchive(val)}></Checkbox>
+          <Label htmlFor='active'>Архив</Label>
+        </div>
+
+        <Button onClick={() => { onSave({ name, username, id, topicGroupId, isArchive }); setOpen(false) }}>Сохранить</Button>
       </DialogContent>
     </Dialog>
 
