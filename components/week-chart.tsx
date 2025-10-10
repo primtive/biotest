@@ -10,11 +10,11 @@ moment.locale('ru');
 const chartConfig = {
   count: {
     label: "Все тесты",
-    color: "#23614B",
+    color: "var(--chart-1)",
   },
   countCompleted: {
     label: "Завершенные тесты",
-    color: "#1b4a39",
+    color: "var(--chart-2)",
   },
 } satisfies ChartConfig
 

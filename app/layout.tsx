@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
-import { Logo } from "@/components/logo";
 import Providers from "./providers";
 import { getServerSession } from "next-auth";
 import authOptions from "@/auth";
 import SidebarLayout from "@/components/sidebar/sidebar-layout";
 import { Navbar } from "@/components/sidebar/navbar";
+import Particles from "@/components/particles";
 
 const font = Montserrat({
   subsets: ["cyrillic"],
@@ -26,8 +26,8 @@ export default async function RootLayout({
 
   return (
     <html lang="ru" suppressHydrationWarning>
-      <Providers session={session}>
-        <body className={`${font.className} antialiased`}>
+      <body className={`${font.className} antialiased`}>
+        <Providers session={session}>
           <SidebarLayout>
             <Navbar />
             <div className="p-2 lg:p-5 w-full">
@@ -35,9 +35,10 @@ export default async function RootLayout({
                 {children}
               </div>
             </div>
+            <Particles />
           </SidebarLayout>
-        </body>
-      </Providers>
+        </Providers>
+      </body>
     </html>
   );
 }

@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import * as React from 'react';
 import { FullLeaderboard } from './full-leaderboard';
-import { Card } from '@/components/ui/card';
+import SecretButton from '@/components/secret-button';
 
 export const metadata = {
   title: 'Секретные функции',
@@ -28,7 +28,7 @@ export default async function SecretPage() {
 
   return (
     <div className='space-y-3'>
-      <Card>Пикми тема скоро будет...</Card>
+      <SecretButton />
       <FullLeaderboard data={data} initTopicGroupId={topicGroupId} userId={session?.user?.id} />
     </div>
   );

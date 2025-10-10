@@ -10,7 +10,7 @@ moment.locale('ru');
 const chartConfig = {
   score: {
     label: "Правильных заданий",
-    color: "#23614B",
+    color: "var(--chart-1)",
   },
 } satisfies ChartConfig
 

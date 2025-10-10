@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    volumes:
+      - ./:/app
     environment:
       - DATABASE_URL=mongodb://admin:12345678@mongo:27017/biotest?authSource=admin&tls=false&directConnection=true
       - NEXTAUTH_URL=http://localhost
@@ -17,7 +19,7 @@ services:
       mongod --replSet rs0
              --bind_ip_all
              --auth
-             --keyFile /data/configdb/keyfile
+             --keyFile /etc/secrets/keyfile
     ports:
       - 27017:27017
     environment:
@@ -26,13 +28,11 @@ services:
     volumes:
       - mongo_data:/data/db
       - mongo_config:/data/configdb
-      - ./mongo-keyfile:/data/configdb/keyfile:ro
+      - ./mongo-keyfile:/etc/secrets/keyfile:ro
     networks:
       - proxy_network
 
 volumes:
-  npm_data:
-  npm_letsencrypt:
   mongo_data:
   mongo_config:
 
