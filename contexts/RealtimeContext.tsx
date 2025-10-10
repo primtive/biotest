@@ -26,7 +26,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           if (data.isEnabled) {
             setTheme("pink");
           } else {
-            setTheme(systemTheme || "light");
+            setTheme("light");
           }
         }
       } catch (err) {
