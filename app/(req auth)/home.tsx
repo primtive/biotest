@@ -32,10 +32,14 @@ export default function Home({ topics, topicGroupId }: { topics: Array<{ name: s
 
     setSubmitPressed(true);
 
-    if (!mode) router.push('/t')
+    if (!mode) {
+      const req = await fetch('/api/test')
+      router.push(await req.text())
+    }
     const isSelected = await form.trigger('items')
     if (isSelected) {
-      router.push('/t?topics=' + form.getValues().items.join(','))
+      const req = await fetch('/api/test?topics=' + form.getValues().items.join(','))
+      router.push(await req.text())
     }
   }
 
