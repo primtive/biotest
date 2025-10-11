@@ -103,7 +103,6 @@ const UserTable = (data: { users: Array<User>, groups: string[] }) => {
       });
     }
     setColumnFilters(newFilters);
-    console.log(JSON.stringify(newFilters));
   }, [nameFilter, usernameFilter, selectedGroups]);
 
   const columns = useMemo<ColumnDef<User>[]>(

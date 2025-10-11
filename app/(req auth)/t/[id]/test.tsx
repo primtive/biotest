@@ -1,6 +1,5 @@
 "use client"
-import { Task } from '@/components/task';
-import { Badge } from '@/components/ui/badge';
+import { Task } from './task';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { usePathname, useRouter } from 'next/navigation';
@@ -13,13 +12,13 @@ enum Answer {
 }
 
 type AnswersBD = Array<{ taskId: string, answer: string, correct: boolean }>
-type Tasks = Array<{ id: string, html: string }>
+type Tasks = Array<{ id: string, html: string, topic: string }>
 
 
 export const Test = ({ tasks, id, initTaskAnswers }: { tasks: Tasks, id: string, initTaskAnswers: AnswersBD }) => {
   const router = useRouter();
   const pathname = usePathname()
-  const completePath = `${pathname}/complete`;
+  const completePath = `${pathname}/review`;
   const taskCount = tasks.length
   const [taskIndex, setTaskIndex] = React.useState(initTaskAnswers ? initTaskAnswers.length : 0)
   const [taskAnswers, setTaskAnswers] = React.useState(tasks.map(task => {

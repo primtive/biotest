@@ -32,6 +32,7 @@ export const TaskEdit = ({ data, id, onSave, el, topics, className }: { data?: a
   const [disordered, setDisordered] = React.useState(data?.disordered)
   const [topicId, setTopicId] = React.useState(data?.topicId)
   const [html, setHtml] = React.useState(data?.html)
+  const [explanation, setExplanation] = React.useState(data?.explanation)
   const [answer, setAnswer] = React.useState(data?.answer)
   const [open, setOpen] = React.useState(false);
   React.useEffect(() => {
@@ -39,6 +40,7 @@ export const TaskEdit = ({ data, id, onSave, el, topics, className }: { data?: a
     setDisordered(data?.disordered);
     setTopicId(data?.topicId);
     setHtml(data?.html);
+    setExplanation(data?.explanation);
     setAnswer(data?.answer);
   }, [data]);
 
@@ -60,9 +62,9 @@ export const TaskEdit = ({ data, id, onSave, el, topics, className }: { data?: a
           <Checkbox id='disordered' checked={disordered} onCheckedChange={(val) => setDisordered(val)}></Checkbox>
           <Label htmlFor='disordered'>Неупорядоченное</Label>
         </div>
-        <Label htmlFor='html' >Тема</Label>
+        <Label htmlFor='topic' >Тема</Label>
         <Select defaultValue={topicId} onValueChange={(val) => setTopicId(val)}>
-          <SelectTrigger className="">
+          <SelectTrigger id='topic'>
             <SelectValue placeholder="Выберите тему" />
           </SelectTrigger>
           <SelectContent>
@@ -73,7 +75,7 @@ export const TaskEdit = ({ data, id, onSave, el, topics, className }: { data?: a
           </SelectContent>
         </Select>
         <div className='justify-between flex items-center'>
-          <Label htmlFor='html' >HTML код задания</Label>
+          <Label htmlFor='content' >HTML код задания</Label>
           <Dialog>
             <DialogTrigger>
               <Button variant={'ghost'} className='w-5 h-min'><Eye /></Button>
@@ -83,13 +85,26 @@ export const TaskEdit = ({ data, id, onSave, el, topics, className }: { data?: a
             </DialogContent>
           </Dialog>
         </div>
-        <Textarea id='html' value={html} onChange={(e) => setHtml(e.target.value)} className='h-[200px]' />
+        <Textarea id='content' value={html} onChange={(e) => setHtml(e.target.value)} className='h-[150px]' />
+
+
+        <div className='justify-between flex items-center'>
+          <Label htmlFor='explanation' >HTML код пояснения</Label>
+          <Dialog>
+            <DialogTrigger>
+              <Button variant={'ghost'} className='w-5 h-min'><Eye /></Button>
+            </DialogTrigger>
+            <DialogContent>
+              <div dangerouslySetInnerHTML={{ __html: explanation }} />
+            </DialogContent>
+          </Dialog>
+        </div>
+        <Textarea id='explanation' value={explanation} onChange={(e) => setExplanation(e.target.value)} className='h-[150px]' />
 
         <Label htmlFor='answer' >Ответ</Label>
         <EditStringArray initialStrings={answer.split(', ')} onChange={(strings: any) => { setAnswer(strings.join(', ')) }} />
-        <Button onClick={() => { onSave({ topicId, html, answer, id, active, disordered }); setOpen(false) }}>Сохранить</Button>
+        <Button onClick={() => { onSave({ topicId, html, answer, id, active, disordered, explanation }); setOpen(false) }}>Сохранить</Button>
       </DialogContent>
     </Dialog>
-
   )
 }

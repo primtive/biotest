@@ -24,7 +24,12 @@ export default async function TestPage({
   }
   if (test.userId != user?.id) notFound();
   if (!test) notFound();
-  const tasks = (await prisma.task.findMany({where: {id: {in: test.tasksIds}}})).map(task => ({html: task.html, id: task.id}))
+  const tasks = (await prisma.task.findMany(
+    {
+      where: { id: { in: test.tasksIds } },
+      include: { topic: true }
+    })
+  ).map(task => ({ html: task.html, id: task.id, topic: task.topic.name }))
   return (
     <Test tasks={tasks} initTaskAnswers={test.answers} id={id} />
   );

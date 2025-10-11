@@ -9,7 +9,7 @@ import { Navbar } from "@/components/sidebar/navbar";
 
 const font = Montserrat({
   subsets: ["cyrillic"],
-  weight: "500"
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -25,7 +25,7 @@ export default async function RootLayout({
 
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={`${font.className} antialiased`}>
+      <body className={`${font.className} font-medium antialiased`}>
         <Providers session={session}>
           <SidebarLayout>
             <Navbar />

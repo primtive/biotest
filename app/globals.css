@@ -25,7 +25,7 @@ body {
   :root {
     --background: oklch(1 0 0);
     --foreground: oklch(22.939% 0.05323 158.482);
-    --card: oklch(95.815% 0.00011 271.152);
+    --card: oklch(98.511% 0.00011 271.152);
     --card-foreground: oklch(22.939% 0.05323 158.482);
     --popover: oklch(0.96 0.01 161.74);
     --popover-foreground: oklch(0.5 0.06 161.74);
@@ -69,6 +69,9 @@ body {
   }
 
   [data-theme="dark"] {
+    img {
+      filter: invert(1) hue-rotate(180deg);
+    }
     --background: oklch(0.18 0.005 161.74);
     --foreground: oklch(0.9532 0.01 161.74);
     --card: oklch(18.861% 0.00373 164.929);
