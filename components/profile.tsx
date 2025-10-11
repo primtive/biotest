@@ -1,20 +1,20 @@
-"use client"
 import * as React from 'react';
 import { Card } from './ui/card';
 import Link from 'next/link';
-import { signOut, useSession } from 'next-auth/react';
-import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { CircleCheck, CirclePercent, Flame } from 'lucide-react';
+import { CircleCheck, CirclePercent } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { getServerSession } from 'next-auth';
+import authOptions from '@/auth';
+import SignOut from './signout';
 
-export const Profile = () => {
-  const { data: session } = useSession()
+export const Profile = async () => {
+  const session = await getServerSession(authOptions);
   return (
     <Card className=''>
       {session ?
@@ -36,17 +36,6 @@ export const Profile = () => {
                   <p>Правильно выполненных заданий</p>
                 </TooltipContent>
               </Tooltip>
-              {/* <Tooltip> */}
-              {/* <TooltipTrigger asChild> */}
-              {/* <div className='flex gap-1 items-center'> */}
-              {/* <p>{session.user?.streak}</p> */}
-              {/* <Flame className='w-5 h-5' /> */}
-              {/* </div> */}
-              {/* </TooltipTrigger> */}
-              {/* <TooltipContent> */}
-              {/* <p>Дней прохождений тестов подряд</p> */}
-              {/* </TooltipContent> */}
-              {/* </Tooltip> */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className='flex gap-1 items-center'>
@@ -59,7 +48,7 @@ export const Profile = () => {
                 </TooltipContent>
               </Tooltip>
             </div>
-            <Button variant={'secondary'} onClick={() => signOut({ callbackUrl: '/' })}>Выйти</Button>
+            <SignOut />
           </div>
         </TooltipProvider>
         :

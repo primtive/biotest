@@ -8,7 +8,8 @@ export const metadata = {
 
 export default async function UsersPage() {
   const users = await getUsers();
+  const groups = Array.from(new Set(users.map((user: any) => user.group).filter(Boolean)));
   return (
-    <UserTable users={users} />
+    <UserTable users={users} groups={groups} />
   );
 }

@@ -10,7 +10,6 @@ declare module "next-auth" {
     username: string,
     admin: boolean,
     score: number,
-    streak: number,
     percent: number,
     topicGroupId: string
   }

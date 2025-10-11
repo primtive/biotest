@@ -1,6 +1,6 @@
 "use client"
 import React, { useMemo, useState } from "react";
-import { CheckCircle, Lock, NotepadText, Pencil, PercentCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle, Lock, NotepadText, Pencil, PercentCircle, Trash2, ChevronLeft, ChevronRight, Group } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -36,11 +36,20 @@ import {
   ColumnDef,
   flexRender,
   ColumnFiltersState,
+  Row,
 } from '@tanstack/react-table';
+import { GroupSelect } from "./group-select";
 
-const UserTable = (data: { users: Array<User> }) => {
+function multiSelectFilter(
+  row: Row<any>, columnId: string, filterValue: any
+) {
+  return filterValue.includes(String(row.original.group))
+}
+
+const UserTable = (data: { users: Array<User>, groups: string[] }) => {
   const [nameFilter, setNameFilter] = useState("");
   const [usernameFilter, setUsernameFilter] = useState("");
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [users, setUsers] = useState<Array<User>>(data.users);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -87,8 +96,15 @@ const UserTable = (data: { users: Array<User> }) => {
         value: usernameFilter
       });
     }
+    if (selectedGroups.length > 0) {
+      newFilters.push({
+        id: 'group',
+        value: selectedGroups
+      });
+    }
     setColumnFilters(newFilters);
-  }, [nameFilter, usernameFilter]);
+    console.log(JSON.stringify(newFilters));
+  }, [nameFilter, usernameFilter, selectedGroups]);
 
   const columns = useMemo<ColumnDef<User>[]>(
     () => [
@@ -100,6 +116,11 @@ const UserTable = (data: { users: Array<User> }) => {
       {
         header: "Имя",
         accessorKey: "name",
+      },
+      {
+        id: 'group',
+        accessor: 'group',
+        filterFn: multiSelectFilter,
       },
       {
         header: "Группа",
@@ -234,6 +255,8 @@ const UserTable = (data: { users: Array<User> }) => {
           onSave={onUserSave}
         />
       </div>
+
+      {GroupSelect(data.groups, selectedGroups, setSelectedGroups)}
 
       <TooltipProvider>
         <Table>

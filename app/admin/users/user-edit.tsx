@@ -21,6 +21,7 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
   const [username, setUsername] = React.useState(data?.username)
   const [topicGroupId, setTopicGroupId] = React.useState(data?.topicGroupId)
   const [isArchive, setIsArchive] = React.useState(data?.isArchive)
+  const [group, setGroup] = React.useState(data?.group)
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -40,25 +41,34 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
         <Label htmlFor='username' >Имя пользователя</Label>
         <Input id='username' value={username} onChange={(e) => setUsername(e.target.value)} />
 
-        <Label>Группа заданий</Label>
-        <Select defaultValue={topicGroupId} onValueChange={(val: string) => setTopicGroupId(val)}>
-          <SelectTrigger className="w-[300px]">
-            <SelectValue placeholder="Выберите группу заданий" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="67962669e4f21c30e05aef8b">ЕГЭ</SelectItem>
-              <SelectItem value="67962ae5e4f21c30e05aef91">ОГЭ</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        <div className='flex gap-2'>
+          <div className='w-full'>
+            <Label htmlFor='group' >Группа</Label>
+            <Input id='group' value={group} onChange={(e) => setGroup(e.target.value)} />
+          </div>
+
+          <div className='w-full'>
+            <Label>Группа заданий</Label>
+            <Select defaultValue={topicGroupId} onValueChange={(val: string) => setTopicGroupId(val)}>
+              <SelectTrigger className='w-full'>
+                <SelectValue placeholder="Выберите группу заданий" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="67962669e4f21c30e05aef8b">ЕГЭ</SelectItem>
+                  <SelectItem value="67962ae5e4f21c30e05aef91">ОГЭ</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         <div className='flex gap-2'>
           <Checkbox id='active' checked={isArchive} onCheckedChange={(val: boolean) => setIsArchive(val)}></Checkbox>
           <Label htmlFor='active'>Архив</Label>
         </div>
 
-        <Button onClick={() => { onSave({ name, username, id, topicGroupId, isArchive }); setOpen(false) }}>Сохранить</Button>
+        <Button onClick={() => { onSave({ name, username, id, topicGroupId, isArchive, group }); setOpen(false) }}>Сохранить</Button>
       </DialogContent>
     </Dialog>
 
