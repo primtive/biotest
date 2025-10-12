@@ -12,7 +12,7 @@ const RealtimeContext = createContext<RealtimeContextType | null>(null);
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [isEnabled, setIsEnabled] = useState(false);
-  const { setTheme, systemTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
 
   // Подключение к SSE
   useEffect(() => {
@@ -26,7 +26,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           if (data.isEnabled) {
             setTheme("pink");
           } else {
-            setTheme("light");
+            if (resolvedTheme && resolvedTheme !== "pink") setTheme(resolvedTheme);
+            else setTheme("light");
           }
         }
       } catch (err) {

@@ -88,6 +88,7 @@ export default function Home({ topics, topicGroupId }: { topics: Array<{ name: s
                                   <TableCell className="flex items-stretch">
                                     {/* <FormItem key={item.id}> */}
                                     <Checkbox
+                                      id={item.id}
                                       checked={field.value?.includes(item.id)}
                                       onCheckedChange={(checked) => {
                                         return checked
@@ -99,7 +100,7 @@ export default function Home({ topics, topicGroupId }: { topics: Array<{ name: s
                                           )
                                       }}
                                     />
-                                    <FormLabel className="text-md ml-2">
+                                    <FormLabel htmlFor={item.id} className="text-md ml-2">
                                       {item.name}
                                     </FormLabel>
                                     {/* </FormItem> */}

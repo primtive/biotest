@@ -54,6 +54,9 @@ model Task {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   html        String
   answer      String
+  line        String   @default("")
+  isReported  Boolean  @default(false)
+  source      String   @default("")
   explanation String   @default("")
   active      Boolean  @default(true)
   disordered  Boolean  @default(false)

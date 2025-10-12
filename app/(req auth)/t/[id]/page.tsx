@@ -29,7 +29,7 @@ export default async function TestPage({
       where: { id: { in: test.tasksIds } },
       include: { topic: true }
     })
-  ).map(task => ({ html: task.html, id: task.id, topic: task.topic.name }))
+  ).map(task => ({ html: task.html, id: task.id, topic: task.topic.name, line: task.line, source: task.source }))
   return (
     <Test tasks={tasks} initTaskAnswers={test.answers} id={id} />
   );

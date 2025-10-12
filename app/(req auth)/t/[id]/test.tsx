@@ -12,7 +12,7 @@ enum Answer {
 }
 
 type AnswersBD = Array<{ taskId: string, answer: string, correct: boolean }>
-type Tasks = Array<{ id: string, html: string, topic: string }>
+type Tasks = Array<{ id: string, html: string, topic: string, line: string, source: string }>
 
 
 export const Test = ({ tasks, id, initTaskAnswers }: { tasks: Tasks, id: string, initTaskAnswers: AnswersBD }) => {
