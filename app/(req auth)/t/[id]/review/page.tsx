@@ -3,6 +3,7 @@ import prisma from '@/data/prisma';
 import { Card } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
 import { CheckCircle2, CircleAlert, MessageCircleQuestion, XCircle } from 'lucide-react';
+import TaskCard from '../task-card';
 
 export const metadata = {
   title: 'Просмотр теста',
@@ -21,10 +22,7 @@ export default async function ReviewPage({
       {test?.tasks.map(task => {
         const answer = test.answers.find(x => x.taskId == task.id)
         return <Card>
-          <h2 className='mb-4 font-light text-muted-foreground text-sm'>
-            Тема: {task?.topic.name}
-          </h2>
-          <div dangerouslySetInnerHTML={{ __html: task?.html }} />
+          <TaskCard task={{...task, topic: task.topic.name}} />
           <div className='border-2 mt-3 p-3 rounded-sm font-normal space-y-1'>
             {task?.disordered && <div className='text-muted-foreground text-sm flex items-center gap-2'><CircleAlert className='w-4 h-4' />Неупорядоченный ответ</div>}
             <p><b>Ответ:</b> {task?.answer}</p>
