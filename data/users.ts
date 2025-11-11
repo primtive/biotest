@@ -23,7 +23,7 @@ export const getLeaderboard: (topicGroupId: string) => Promise<any> = async (
   const users = await prisma.user.aggregateRaw({
     pipeline: [
       {
-        $match: { admin: false, topicGroupId: { $oid: topicGroupId } },
+        $match: { admin: false, topicGroupId: { $oid: topicGroupId }, isArchive: false},
       },
       {
         $sort: { score: -1 },
