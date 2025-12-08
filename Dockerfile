@@ -24,6 +24,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 RUN npm ci --omit=dev --legacy-peer-deps
+RUN npm i prisma@6.1.0 --legacy-peer-deps
 RUN npx prisma generate
 # genarate again due prisma bugs
 
