@@ -18,6 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 export const TopicEdit = ({ data, id, onSave, el, className }: { data?: any, id?: string, onSave: (values: any) => void, el: React.ReactNode, className?: string }) => {
   const [name, setName] = React.useState(data?.name)
+  const [section, setSection] = React.useState(data?.section)
   const [active, setActive] = React.useState(data?.active)
   const [topicGroupId, setTopicGroupId] = React.useState(data?.topicGroupId)
   const [open, setOpen] = React.useState(false);
@@ -38,6 +39,8 @@ export const TopicEdit = ({ data, id, onSave, el, className }: { data?: any, id?
         </div>
         <Label htmlFor='name' >Название</Label>
         <Input id='name' value={name} onChange={(e) => setName(e.target.value)} />
+        <Label htmlFor='section' >Раздел</Label>
+        <Input id='section' value={section} onChange={(e) => setSection(e.target.value)} />
         <Label>Группа заданий</Label>
         <Select defaultValue={topicGroupId} onValueChange={(val) => setTopicGroupId(val)}>
           <SelectTrigger className="w-[300px]">
@@ -50,7 +53,7 @@ export const TopicEdit = ({ data, id, onSave, el, className }: { data?: any, id?
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button onClick={() => { onSave({ name, topicGroupId, id, active }); setOpen(false) }}>Сохранить</Button>
+        <Button onClick={() => { onSave({ name, section, topicGroupId, id, active }); setOpen(false) }}>Сохранить</Button>
       </DialogContent>
     </Dialog>
 

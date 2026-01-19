@@ -82,6 +82,10 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
         accessorKey: "topicGroup.name",
       },
       {
+        header: "Раздел",
+        accessorKey: "section"
+      },
+      {
         header: "Кол-во",
         accessorKey: "count",
       },

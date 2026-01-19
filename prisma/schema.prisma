@@ -78,6 +78,7 @@ model Topic {
   id           String     @id @default(auto()) @map("_id") @db.ObjectId
   name         String
   active       Boolean    @default(true)
+  section      String     @default("")
   topicGroup   TopicGroup @relation(fields: [topicGroupId], references: [id])
   topicGroupId String     @db.ObjectId
   Task         Task[]

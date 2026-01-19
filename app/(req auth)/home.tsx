@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation";
 import React from "react";
+import { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form"
 import { z } from "zod";
 
@@ -16,7 +18,7 @@ const FormSchema = z.object({
   }),
 })
 
-export default function Home({ topics, topicGroupId }: { topics: Array<{ name: string, id: string, topicGroupId: string, topicGroup: { name: string } }>, topicGroupId: string }) {
+export default function Home({ topics, topicGroupId }: { topics: Array<{ name: string, id: string, section: string, topicGroupId: string, topicGroup: { name: string } }>, topicGroupId: string }) {
   const [mode, setMode] = React.useState(false);
   const [submitPressed, setSubmitPressed] = React.useState(false);
   const router = useRouter()
@@ -27,7 +29,15 @@ export default function Home({ topics, topicGroupId }: { topics: Array<{ name: s
       items: [],
     },
   })
+  const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
 
+  const toggleSection = (section: string) => {
+    setCollapsedSections((prev) =>
+      prev.includes(section)
+        ? prev.filter((c) => c !== section)
+        : [...prev, section]
+    );
+  };
   async function start() {
 
     setSubmitPressed(true);
@@ -76,42 +86,56 @@ export default function Home({ topics, topicGroupId }: { topics: Array<{ name: s
                   <Table>
                     <TableBody>
                       <FormItem>
-                        {topics.map((item) => (
-                          <FormField
-                            key={item.id}
-                            control={form.control}
-                            name="items"
-                            render={({ field }) => {
-                              return (
-                                // <FormControl>
-                                <TableRow>
-                                  <TableCell className="flex items-stretch">
-                                    {/* <FormItem key={item.id}> */}
-                                    <Checkbox
-                                      id={item.id}
-                                      checked={field.value?.includes(item.id)}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([...field.value, item.id])
-                                          : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== item.id
-                                            )
-                                          )
-                                      }}
-                                    />
-                                    <FormLabel htmlFor={item.id} className="text-md ml-2">
-                                      {item.name}
-                                    </FormLabel>
-                                    {/* </FormItem> */}
+                        {topics.map((item, index) => {
+                          const section = item.section;
+                          const showHeader = index === 0 || section !== topics[index - 1].section;
+                          const isCollapsed = collapsedSections.includes(section);
 
+                          return (
+                            <React.Fragment key={item.id}>
+                              {showHeader && (
+                                <TableRow
+                                  className="bg-muted/50 cursor-pointer hover:bg-muted/80 transition-colors"
+                                  onClick={() => toggleSection(section)}
+                                >
+                                  <TableCell className="flex items-center font-bold py-2">
+                                    {isCollapsed ? (
+                                      <ChevronRight className="h-4 w-4 mr-2" />
+                                    ) : (
+                                      <ChevronDown className="h-4 w-4 mr-2" />
+                                    )}
+                                    <span className="text-md ">{section}</span>
                                   </TableCell>
                                 </TableRow>
-                                // </FormControl>
-                              )
-                            }}
-                          />
-                        ))}
+                              )}
+
+                              {!isCollapsed && (
+                                <FormField
+                                  control={form.control}
+                                  name="items"
+                                  render={({ field }) => (
+                                    <TableRow>
+                                      <TableCell className="flex items-center pl-8">
+                                        <Checkbox
+                                          id={item.id}
+                                          checked={field.value?.includes(item.id)}
+                                          onCheckedChange={(checked) => {
+                                            return checked
+                                              ? field.onChange([...field.value, item.id])
+                                              : field.onChange(field.value?.filter((v) => v !== item.id))
+                                          }}
+                                        />
+                                        <FormLabel htmlFor={item.id} className="text-md ml-2 cursor-pointer">
+                                          {item.name}
+                                        </FormLabel>
+                                      </TableCell>
+                                    </TableRow>
+                                  )}
+                                />
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
                         <FormMessage />
                       </FormItem>
                     </TableBody>

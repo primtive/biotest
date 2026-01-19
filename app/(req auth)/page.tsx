@@ -11,7 +11,7 @@ import topicGroups from "@/data/topicGroups";
 export default async function Index() {
   const session = await getServerSession(authOptions)
   const topicGroupId = session?.user?.topicGroupId
-  const topics = await prisma.topic.findMany({ where: { topicGroupId, active: true }, include: { topicGroup: true } })
+  const topics = await prisma.topic.findMany({ where: { topicGroupId, active: true }, include: { topicGroup: true }, orderBy: [{ section: 'asc' }] })
   const lastTest = session?.user ? (await getUserLastTest(session.user.id)) : false
   const data = await Promise.all(topicGroups.map(async topicGroup => {
     const data = await getLeaderboard(topicGroup.topicGroupId);
