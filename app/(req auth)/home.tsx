@@ -18,7 +18,7 @@ const FormSchema = z.object({
   }),
 })
 
-export default function Home({ topics, topicGroupId }: { topics: Array<{ name: string, id: string, section: string, topicGroupId: string, topicGroup: { name: string } }>, topicGroupId: string }) {
+export default function Home({ topics, topicGroupId, topicPercentages }: { topics: Array<{ name: string, id: string, section: string, topicGroupId: string, topicGroup: { name: string } }>, topicGroupId: string, topicPercentages: Record<string, number> }) {
   const [mode, setMode] = React.useState(false);
   const [submitPressed, setSubmitPressed] = React.useState(false);
   const router = useRouter()
@@ -128,6 +128,9 @@ export default function Home({ topics, topicGroupId }: { topics: Array<{ name: s
                                         <FormLabel htmlFor={item.id} className="text-md ml-2 cursor-pointer">
                                           {item.name}
                                         </FormLabel>
+                                      </TableCell>
+                                      <TableCell>
+                                        {topicPercentages[item.id] || 0}%
                                       </TableCell>
                                     </TableRow>
                                   )}

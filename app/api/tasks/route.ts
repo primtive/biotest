@@ -40,7 +40,6 @@ export async function GET(request: NextRequest) {
       where,
     }),
   ]);
-  console.log(where, items);
   return new NextResponse(
     JSON.stringify({ items, total, totalPages: Math.ceil(total / 20) })
   );

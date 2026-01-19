@@ -16,22 +16,23 @@ datasource db {
 }
 
 model User {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt    DateTime   @default(now())
-  lastAccess   DateTime   @default(now())
-  username     String     @unique
-  name         String     @unique
-  admin        Boolean    @default(false)
-  password     String?
-  group        String     @default("")
-  scores       score[]
-  score        Int        @default(0)
-  testsCount   Int        @default(0)
-  percent      Int        @default(0)
-  isArchive    Boolean    @default(false)
-  tests        Test[]
-  topicGroup   TopicGroup @relation(fields: [topicGroupId], references: [id])
-  topicGroupId String     @db.ObjectId
+  id            String              @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt     DateTime            @default(now())
+  lastAccess    DateTime            @default(now())
+  username      String              @unique
+  name          String              @unique
+  admin         Boolean             @default(false)
+  password      String?
+  group         String              @default("")
+  scores        score[]
+  score         Int                 @default(0)
+  testsCount    Int                 @default(0)
+  percent       Int                 @default(0)
+  isArchive     Boolean             @default(false)
+  tests         Test[]
+  topicGroup    TopicGroup          @relation(fields: [topicGroupId], references: [id])
+  topicGroupId  String              @db.ObjectId
+  topicProgress UserTopicProgress[]
 }
 
 model Test {
@@ -75,13 +76,27 @@ model TopicGroup {
 }
 
 model Topic {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  id           String              @id @default(auto()) @map("_id") @db.ObjectId
   name         String
-  active       Boolean    @default(true)
-  section      String     @default("")
-  topicGroup   TopicGroup @relation(fields: [topicGroupId], references: [id])
-  topicGroupId String     @db.ObjectId
+  active       Boolean             @default(true)
+  section      String              @default("")
+  topicGroup   TopicGroup          @relation(fields: [topicGroupId], references: [id])
+  topicGroupId String              @db.ObjectId
   Task         Task[]
+  userProgress UserTopicProgress[]
+}
+
+model UserTopicProgress {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String   @db.ObjectId
+  topic          Topic    @relation(fields: [topicId], references: [id])
+  topicId        String   @db.ObjectId
+  percent        Float    @default(0) // Percentage 0-100
+  updatedAt      DateTime @updatedAt
+  correctTaskIds String[] @db.ObjectId
+
+  @@unique([userId, topicId])
 }
 
 type score {

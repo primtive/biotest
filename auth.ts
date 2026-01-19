@@ -61,7 +61,6 @@ const authOptions: AuthOptions = {
       return _session as Session;
     },
     async jwt({ token, user }) {
-      // console.log("jwt: ", {token, user});
       token.id = user?.id
       return token
     }

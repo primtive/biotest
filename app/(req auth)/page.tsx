@@ -3,7 +3,7 @@ import Home from "./home";
 import prisma from "@/data/prisma";
 import authOptions from "@/auth";
 import { getServerSession } from "next-auth/next";
-import { getLeaderboard, getUserLastTest } from "@/data/users";
+import { getLeaderboard, getUserLastTest, getUserTopicPercentages } from "@/data/users";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import topicGroups from "@/data/topicGroups";
@@ -25,6 +25,7 @@ export default async function Index() {
       leaderboard
     }
   }))
+  const topicPercentages = session ? await getUserTopicPercentages(session!.user!.id) : {};
 
   return <>
     {session &&
@@ -34,7 +35,7 @@ export default async function Index() {
             <p>Вы не закончили прошлый тест!</p>
             <a href={`/t/${lastTest.id}`} className={buttonVariants()}>Вернуться</a>
           </Card>}
-        <Home topics={topics} topicGroupId={topicGroupId!} />
+        <Home topics={topics} topicGroupId={topicGroupId!} topicPercentages={topicPercentages} />
       </>}
     <Leaderboard data={data} initTopicGroupId={topicGroupId} userId={session?.user?.id} />
   </>
