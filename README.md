@@ -2,6 +2,13 @@
 
 A modern web application for biology education, enabling students to take tests on various biology topics, track their progress, and compete on leaderboards. Built with Next.js, Prisma, and MongoDB.
 
+## Demo Access
+
+For testing purposes, a demo account is available:
+
+- **URL:** [orenbio.ru](https://orenbio.ru)
+- **Username:** `demo`
+
 ## Features
 
 ### Student Features
@@ -50,31 +57,6 @@ A modern web application for biology education, enabling students to take tests 
 - **Docker** - Containerization
 - **Docker Compose** - Multi-container orchestration
 
-## Project Structure
-
-```
-/app              - Next.js app router pages and components
-  /api           - API routes
-  /(req auth)    - Protected routes (authentication required)
-  /admin         - Admin panel
-  /login         - Authentication page
-  /secret        - Secret/hidden features
-
-/components       - Reusable React components
-  /ui            - Shadcn/ui components
-  /sidebar       - Navigation sidebar components
-
-/contexts         - React context providers
-/data             - Data utilities and parsers
-  /models        - Data models
-  /parsers       - Importers for test data
-
-/hooks            - Custom React hooks
-/lib              - Utility functions
-/prisma           - Database schema and migrations
-/public           - Static assets
-```
-
 ## Installation
 
 ### Prerequisites
@@ -82,7 +64,7 @@ A modern web application for biology education, enabling students to take tests 
 - MongoDB instance or MongoDB Atlas connection string
 - Docker & Docker Compose (optional, for containerized setup)
 
-### Setup Steps
+### Development Setup Steps
 
 1. **Clone the repository**
 ```bash
@@ -92,49 +74,25 @@ cd biotest
 
 2. **Install dependencies**
 ```bash
-pnpm install
+npm i
 ```
 
-3. **Configure environment variables**
-Create a `.env.local` file:
-```env
-DATABASE_URL=<your-mongodb-connection-string>
-NEXTAUTH_SECRET=<your-secret-key>
-NEXTAUTH_URL=http://localhost:3000
-```
-
-4. **Setup database**
+3. **Setup database**
 ```bash
-pnpm exec prisma migrate dev
-pnpm exec prisma generate
+npx prisma generate
 ```
 
-5. **Start development server**
+4. **Build the app**
 ```bash
-pnpm dev
+npm run build
 ```
 
-Visit `http://localhost:3000` to access the application.
-
-## Docker Setup
-
-### Development Environment
+5. **Start development server with Docker**
 ```bash
-docker-compose -f docker-compose-dev.yml up
+docker compose -f docker-compose-dev.yml up -d
 ```
 
-### Production Environment
-```bash
-docker-compose -f docker-compose.yml up -d
-```
-
-## Available Scripts
-
-- `pnpm dev` - Start development server with Turbopack
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-- `pnpm lint` - Run ESLint
-- `pnpm parser1` - Import test data from biorobot parser
+Visit `http://localhost` to access the application.
 
 ## Data Models
 
@@ -165,16 +123,6 @@ docker-compose -f docker-compose.yml up -d
 - Top-level organization for tests (e.g., "Biology 101", "Advanced Biology")
 - Contains multiple Topics
 
-## Database Schema
-
-The application uses MongoDB with Prisma ORM. Key relationships:
-- **User** ↔ **TopicGroup** (Many users per group)
-- **User** ↔ **Test** (User has many tests)
-- **User** ↔ **UserTopicProgress** (Track progress per topic)
-- **Test** ↔ **Task** (Test contains many tasks)
-- **Topic** ↔ **Task** (Topic contains many tasks)
-- **TopicGroup** ↔ **Topic** (Group contains many topics)
-
 ## Authentication
 
 The application uses NextAuth.js with Prisma for session management. Authentication flow:
@@ -182,14 +130,6 @@ The application uses NextAuth.js with Prisma for session management. Authenticat
 - Password hashing with bcrypt
 - Session-based authentication
 - Protected API routes and pages
-
-## Contributing
-
-When contributing to this project:
-1. Create a new branch for your feature
-2. Follow the existing code structure and naming conventions
-3. Ensure TypeScript types are properly defined
-4. Test your changes before submitting
 
 ## Deployment
 
