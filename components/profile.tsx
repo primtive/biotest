@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import { Card } from './ui/card';
 import Link from 'next/link';
@@ -9,15 +10,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getServerSession } from 'next-auth';
-import authOptions from '@/auth';
+import { useSession } from 'next-auth/react';
 import SignOut from './signout';
 
-export const Profile = async () => {
-  const session = await getServerSession(authOptions);
+export const Profile = () => {
+  const { data: session } = useSession();
   return (
     <Card className=''>
-      {session ?
+      {session?.user ?
         <TooltipProvider>
           <div className='flex items-center justify-between'>
             <div>

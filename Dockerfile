@@ -1,32 +1,19 @@
-# Production
-
 FROM node:24-alpine AS builder
-
 WORKDIR /app
-
-# Копируем зависимости и устанавливаем их
+RUN apk add --no-cache openssl
 COPY package*.json ./
-COPY prisma/schema.prisma ./prisma/
-RUN npm ci --legacy-peer-deps
-RUN npx prisma generate
-
-# Копируем исходный код и собираем приложение
+COPY prisma ./prisma
+RUN npm ci --legacy-peer-deps && npx prisma generate
 COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
-
-# Финальный образ (мультистадж)
 FROM node:24-alpine AS runner
 WORKDIR /app
-
-# Копируем только необходимые файлы
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-RUN npm ci --omit=dev --legacy-peer-deps
-RUN npm i prisma@6.1.0 --legacy-peer-deps
-RUN npx prisma generate
-# genarate again due prisma bugs
-
-
-CMD ["npm", "start"]
+RUN apk add --no-cache openssl
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/public ./public
+USER node
+EXPOSE 3000
+CMD ["node", "server.js"]

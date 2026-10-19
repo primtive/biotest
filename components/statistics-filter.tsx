@@ -1,0 +1,4 @@
+import type { StatisticsRange } from '@/data/statistics-utils';
+export function StatisticsFilter({ range, admin = false, topicGroup = 'all' }: { range: StatisticsRange; admin?: boolean; topicGroup?: string }) {
+  return <form method="get" className="flex flex-wrap items-end gap-3"><label>С <input className="block border rounded p-2 bg-background" type="date" name="from" defaultValue={range.from} required /></label><label>По <input className="block border rounded p-2 bg-background" type="date" name="to" defaultValue={range.to} required /></label>{admin && <label>Группа<select className="block border rounded p-2 bg-background" name="topicGroup" defaultValue={topicGroup}><option value="all">ОГЭ / ЕГЭ</option><option value="oge">ОГЭ</option><option value="ege">ЕГЭ</option></select></label>}<button className="border rounded p-2" type="submit">Показать</button><p className="text-sm text-muted-foreground">Даты: Москва</p></form>;
+}

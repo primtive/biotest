@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/server/access";
 import * as React from 'react';
 import prisma from "@/data/prisma";
 import TopicsTable from './topics-table';
@@ -7,6 +8,7 @@ export const metadata = {
 };
 
 export default async function UsersPage() {
+  await requireAdmin();
   const aggr: any = await prisma.task.aggregateRaw({
     pipeline: [
       {

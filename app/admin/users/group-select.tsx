@@ -19,7 +19,7 @@ export function GroupSelect(groups: string[], selected: string[], setSelected: R
 
   const handleUnselect = React.useCallback((group: string) => {
     setSelected((prev) => prev.filter((s) => s !== group));
-  }, []);
+  }, [setSelected]);
 
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -40,7 +40,7 @@ export function GroupSelect(groups: string[], selected: string[], setSelected: R
         }
       }
     },
-    [],
+    [setSelected],
   );
 
   const selectables = groups.filter(

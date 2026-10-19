@@ -11,8 +11,8 @@ export default function SidebarLayout({
   children: React.ReactNode;
 }) {
   const sidebar = useStore(useSidebar, (x) => x);
-  if (!sidebar) return null;
-  const { getOpenState, settings } = sidebar;
+  const settings = sidebar?.settings || { disabled: false };
+  const getOpenState = sidebar?.getOpenState || (() => true);
   return (
     <>
       <Sidebar />

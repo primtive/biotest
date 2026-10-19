@@ -1,45 +1,11 @@
-import { NextResponse } from "next/server";
-import prisma from "@/data/prisma";
-
-const eqSet = (xs: any, ys: any) =>
-  xs.size === ys.size &&
-  [...xs].every((x) => ys.has(x));
-
-
-function checkAnswer(task: any, userAnswer: string, disordered: boolean): boolean {
-  if (task.answer == userAnswer) return true
-  for (const singleAnswer of task.answer.split(', ')) {
-    if (checkSingleAnswer(singleAnswer, userAnswer, disordered)) return true
-  }
-  return checkSingleAnswer(task.answer, userAnswer, disordered)
-}
-
-function checkSingleAnswer(correctAnswer: string, userAnswer: string, disordered: boolean) {
-  if (disordered) if (eqSet(new Set(userAnswer.toLowerCase().replace(/\s/g, '')), new Set(correctAnswer.toLowerCase().replace(/\s/g, '')))) return true
-  if (userAnswer.toLowerCase().replace(/\s/g, '') == correctAnswer.toLowerCase().replace(/\s/g, '')) return true
-  return false
-}
-
+import { z } from 'zod';
+import { getApiUser, apiError, parseId, idSchema, readJson, HttpError } from '@/lib/server/access';
+import { submitAnswer } from '@/lib/server/attempts';
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const id = params.id || ''
-  const body = await request.json();
-  const task = await prisma.task.findFirst({
-    where: { id }
-  })
-  const isCorrect = checkAnswer(task, body.userAnswer, task?.disordered!)
-  const test = await prisma.test.findFirst({
-    where: {
-      id: body.testId
-    },
-  })
-  await prisma.test.update({
-    where: {
-      id: body.testId
-    },
-    data: {
-      answers: [...test!.answers, { taskId: body.id, answer: body.userAnswer, correct: isCorrect }]
-    }
-  })
-  return NextResponse.json({ correct: isCorrect })
+  try {
+    const user = await getApiUser(request); const id = parseId((await props.params).id);
+    const body = z.object({ testId: idSchema, userAnswer: z.string().trim().min(1).max(1000), id: idSchema.optional(), correct: z.unknown().optional() }).strict().parse(await readJson(request));
+    if (body.id && body.id !== id) throw new HttpError(400, 'Идентификаторы заданий не совпадают');
+    return Response.json({ correct: await submitAnswer(user, body.testId, id, body.userAnswer) });
+  } catch (error) { return apiError(error); }
 }

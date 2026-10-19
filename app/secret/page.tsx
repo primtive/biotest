@@ -1,3 +1,4 @@
+import { requireUser, secretUserIds } from "@/lib/server/access";
 import authOptions from '@/auth';
 import topicGroups from '@/data/topicGroups';
 import { getLeaderboard } from '@/data/users';
@@ -12,14 +13,13 @@ export const metadata = {
 };
 
 export default async function SecretPage() {
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user) return redirect('/')
-  if (!['678017cadefdce0d7375bf07', '6784f9d99bbfbb23d367b5e0'].includes(session?.user?.id)) return redirect('/')
+  const user = await requireUser();
+  if (!secretUserIds.includes(user.id)) redirect('/');
+  const session = { user };
 
   const topicGroupId = session?.user?.topicGroupId
   const data = await Promise.all(topicGroups.map(async topicGroup => {
-    const data = await getLeaderboard(topicGroup.topicGroupId);
+    const data = await getLeaderboard(topicGroup.topicGroupId, user.id, true);
     return {
       ...topicGroup,
       leaderboard: data

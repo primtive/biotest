@@ -1,0 +1,65 @@
+name: biotest-prod
+
+# Required environment variables (in .env or passed to Docker Compose):
+# SITE_ADDRESS=https://bio.example.com
+# DATABASE_URL=mongodb://.../biotest?replicaSet=rs0&directConnection=true
+# NEXTAUTH_SECRET=<openssl rand -hex 32>
+# MongoDB is external to this stack; its URL must be reachable from the app container.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL to your MongoDB replica set}
+      NEXTAUTH_URL: ${SITE_ADDRESS:?Set SITE_ADDRESS, for example https://bio.example.com}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?Set a random NEXTAUTH_SECRET}
+      NEXT_TELEMETRY_DISABLED: "1"
+    # Only Caddy can reach the app from outside the Compose network.
+    expose:
+      - "3000"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/auth/csrf').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    stop_grace_period: 30s
+    networks:
+      - web
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?Set SITE_ADDRESS, for example https://bio.example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

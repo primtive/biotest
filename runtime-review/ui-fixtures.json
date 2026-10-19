@@ -1,0 +1,14 @@
+{
+  "topicId": "6ad66928ccfb917f1e811007",
+  "emptyTopicId": "6ad66928ccfb917f1e811008",
+  "users": {
+    "rt-ui-student": "6ad66928ccfb917f1e811009",
+    "rt-ui-admin": "6ad66928ccfb917f1e81100a",
+    "rt-ui-edit-a": "6ad66928ccfb917f1e81100b",
+    "rt-ui-edit-b": "6ad66928ccfb917f1e81100c"
+  },
+  "tasks": [
+    "6ad66928ccfb917f1e81100d",
+    "6ad66928ccfb917f1e81100e"
+  ]
+}

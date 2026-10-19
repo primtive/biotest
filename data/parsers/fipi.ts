@@ -2,18 +2,20 @@ import { parse } from 'node-html-parser';
 import clipboardy from 'clipboardy';
 import prisma from "../prisma";
 import fs from 'fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 
 const decoder = new TextDecoder('utf-8');
 
 async function parseTasks() {
-  var topicList = fs.readFileSync('C:\\Users\\User\\Desktop\\projects\\biotest\\data\\parsers\\fipi.txt', 'utf-8')
-
-  await prisma.task.deleteMany()
+  if (process.env.ALLOW_LEGACY_IMPORT !== "1") throw new Error("Legacy importer is disabled. Use a staged import and explicit backup.");
+  const topicList = fs.readFileSync(process.argv[2] || path.join(path.dirname(fileURLToPath(import.meta.url)), 'fipi.txt'), 'utf-8');
+  // Existing tasks are retained so old test references remain valid.
   // await prisma.topic.deleteMany()
 
   const tasks = []
-  topicList.split('\n').map(async str => {
+  await Promise.all(topicList.split('\n').filter(Boolean).map(async str => {
     const [topicName, url] = str.split(';')
 
     console.log(`creating topic ${topicName}`);
@@ -56,7 +58,7 @@ async function parseTasks() {
         }
       })
     }
-  })
+  }))
   console.log('done');
 }
 

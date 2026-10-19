@@ -5,21 +5,22 @@ import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
-import { useRealtime } from "@/contexts/RealtimeContext"
 
 export function ThemeToggle({ className }: { className?: string }) {
-  const { setTheme, theme } = useTheme()
-  const { isEnabled } = useRealtime();
+  const { setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
 
   return (
-    theme === "pink" ? null :
+    mounted && resolvedTheme === "pink" ? null :
     <Button
       variant="ghost"
       size="icon"
       className={className}
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      aria-label="Переключить тему"
+      onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}
     >
-      {theme === "light" ?
+      {mounted && resolvedTheme === "light" ?
         <Sun className="h-5 w-5" />
         :
         <Moon className="h-5 w-5" />

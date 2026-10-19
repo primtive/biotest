@@ -1,47 +1,30 @@
-// app/api/events/route.ts
-import { NextRequest } from "next/server";
-
-let clients: ReadableStreamDefaultController<Uint8Array>[] = [];
-let isEnabled = false;
-
-export async function GET() {
-  let controllerRef: ReadableStreamDefaultController<Uint8Array> | null = null;
-
-  const stream = new ReadableStream({
+import { getMongoDb } from '@/data/mongo';
+import { getApiUser, apiError, secretUserIds, HttpError } from '@/lib/server/access';
+export const dynamic = 'force-dynamic';
+type State = { _id: string; enabled: boolean };
+export async function GET(request: Request) {
+  const encoder = new TextEncoder(); let timer: ReturnType<typeof setInterval> | undefined; let closed = false;
+  const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      controllerRef = controller;
-      const encoder = new TextEncoder();
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ isEnabled })}\n\n`));
-      clients.push(controller);
+      let previous: boolean | undefined; let reading = false;
+      const close = () => { if (closed) return; closed = true; if (timer) clearInterval(timer); try { controller.close(); } catch {} };
+      request.signal.addEventListener('abort', close, { once: true });
+      async function send() {
+        if (closed || reading) return; reading = true;
+        try { const state = await (await getMongoDb()).collection<State>('AppState').findOne({ _id: 'theme' }); const enabled = state?.enabled ?? false;
+          if (!closed) { controller.enqueue(encoder.encode(previous !== enabled ? `data: ${JSON.stringify({ isEnabled: enabled })}\n\n` : ': heartbeat\n\n')); previous = enabled; }
+        } catch { close(); } finally { reading = false; }
+      }
+      void send(); timer = setInterval(() => void send(), 5000);
     },
-    cancel() {
-      clients = clients.filter(c => c !== controllerRef);
-    },
+    cancel() { closed = true; if (timer) clearInterval(timer); },
   });
-
-  const response = new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      "Connection": "keep-alive",
-    },
-  });
-
-  return response;
+  return new Response(stream, { headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', 'X-Accel-Buffering': 'no' } });
 }
-
-// Helper to send updates
-function broadcast(data: any) {
-  const message = `data: ${JSON.stringify(data)}\n\n`;
-  const encoder = new TextEncoder();
-  for (const c of clients) c.enqueue(encoder.encode(message));
-}
-
-// POST-запрос для переключения
-export async function POST() {
-  isEnabled = !isEnabled;
-  broadcast({ isEnabled });
-  return new Response(JSON.stringify({ success: true, isEnabled }), {
-    headers: { "Content-Type": "application/json" },
-  });
+export async function POST(request: Request) {
+  try {
+    const user = await getApiUser(request); if (!secretUserIds.includes(user.id)) throw new HttpError(403, 'Недостаточно прав');
+    const state = await (await getMongoDb()).collection<State>('AppState').findOneAndUpdate({ _id: 'theme' }, [{ $set: { enabled: { $not: [{ $ifNull: ['$enabled', false] }] } } }], { upsert: true, returnDocument: 'after' });
+    return Response.json({ success: true, isEnabled: state?.enabled ?? false });
+  } catch (error) { return apiError(error); }
 }

@@ -1,4 +1,6 @@
-"use client"
+"use client";
+import { requestJson, errorMessage } from '@/lib/client-request';
+
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,7 +25,7 @@ type ReportData = {
 
 interface DateRange {
   from: Date;
-  to: Date;
+  to?: Date;
 }
 
 
@@ -91,23 +93,15 @@ const Reports = () => {
     }
   }, [mode])
 
-  function getData() {
-    setPending(true)
-
-    if (!period) {
-      toast.error('Выберите даты')
-      return
-    }
-
-    fetch(`/api/reports?from=${moment(period.from).format('YYYY-MM-DD')}&to=${moment(period.to).format('YYYY-MM-DD')}&topicGroup=${topicGroup}${completedOnly ? '&completedOnly' : ''}`)
-      .then(x => x.json()).then(res => {
-        setPending(false)
-        if (res.message) {
-          toast.error(res.message)
-          return
-        }
-        setReport(res)
-      })
+  async function getData() {
+    if (!period?.from || !period?.to || period.from > period.to) { toast.error('Выберите корректные начальную и конечную даты'); return; }
+    setPending(true);
+    try {
+      const query = new URLSearchParams({ from: moment(period.from).format('YYYY-MM-DD'), to: moment(period.to).format('YYYY-MM-DD'), topicGroup });
+      if (completedOnly) query.set('completedOnly', 'true');
+      setReport(await requestJson<ReportData>(`/api/reports?${query}`));
+    } catch (error) { toast.error(errorMessage(error)); }
+    finally { setPending(false); }
   }
 
   const [scoreGoal, setScoreGoal] = useLocalStorage<number>('scoreGoal', 0)
@@ -126,7 +120,7 @@ const Reports = () => {
             defaultMonth={period?.from}
             selected={period}
             onSelect={(period) => {
-              setPeriod({ from: period?.from!, to: period?.to! })
+              setPeriod(period?.from ? { from: period.from, to: period.to } : undefined)
               setMode('custom')
             }}
             numberOfMonths={1}

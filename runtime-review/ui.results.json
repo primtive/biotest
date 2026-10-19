@@ -1,0 +1,42 @@
+{
+  "environment": "local Next.js dev, CUA browser interactions; synthetic rt-ui fixtures only",
+  "checks": [
+    {
+      "name": "start_without_topics_then_select_topic",
+      "validationShown": true,
+      "buttonDisabledAfterSelection": true,
+      "screenshot": "ui-start-disabled.png"
+    },
+    {
+      "name": "normal_two_question_test",
+      "correctAnswers": 2,
+      "firstCompletionScore": 2,
+      "firstTestsCount": 1
+    },
+    {
+      "name": "reopen_completed_test_in_browser",
+      "sameTestId": "6ad6698a78f5fc9ac4e2610e",
+      "scoreAfterReopen": 4,
+      "testsCountAfterReopen": 2,
+      "scoreEntriesForSameTest": 2
+    },
+    {
+      "name": "profile_after_client_navigation",
+      "displayedScoreBeforeReload": 0,
+      "databaseScore": 2,
+      "displayedScoreAfterReload": 2
+    },
+    {
+      "name": "task_order",
+      "storedTaskIds": [
+        "6ad66928ccfb917f1e81100e",
+        "6ad66928ccfb917f1e81100d"
+      ],
+      "displayedTaskIds": [
+        "6ad66928ccfb917f1e81100d",
+        "6ad66928ccfb917f1e81100e"
+      ],
+      "matchesStoredOrder": false
+    }
+  ]
+}

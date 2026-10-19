@@ -1,0 +1,363 @@
+{
+  "baseUrl": "http://localhost:3001",
+  "mode": "Next.js development server; response bodies and RSC errors inspected",
+  "mutations": "None; credentials login issues JWT only",
+  "results": [
+    {
+      "path": "/admin/users",
+      "authenticated": false,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 127,
+      "bytes": 1357794,
+      "errors": [
+        {
+          "name": "Error",
+          "indicators": [
+            "NEXT_REDIRECT"
+          ]
+        }
+      ],
+      "cookiesSent": false,
+      "manualRedirect": true,
+      "serializedUserRecords": 306,
+      "originalDumpRecordsExposed": 302,
+      "exposedFieldNames": [
+        "admin",
+        "createdAt",
+        "group",
+        "id",
+        "isArchive",
+        "lastAccess",
+        "name",
+        "password",
+        "percent",
+        "score",
+        "scores",
+        "testsCount",
+        "topicGroup",
+        "topicGroupId",
+        "username"
+      ],
+      "serializedScoreEntries": 12073,
+      "nonemptyPasswords": 0
+    },
+    {
+      "path": "/admin/users",
+      "authenticated": false,
+      "rsc": true,
+      "status": 200,
+      "location": null,
+      "contentType": "text/x-component",
+      "ms": 100,
+      "bytes": 1214912,
+      "errors": [
+        {
+          "name": "Error",
+          "indicators": [
+            "NEXT_REDIRECT"
+          ]
+        }
+      ],
+      "cookiesSent": false,
+      "manualRedirect": true,
+      "serializedUserRecords": 306,
+      "originalDumpRecordsExposed": 302,
+      "exposedFieldNames": [
+        "admin",
+        "createdAt",
+        "group",
+        "id",
+        "isArchive",
+        "lastAccess",
+        "name",
+        "password",
+        "percent",
+        "score",
+        "scores",
+        "testsCount",
+        "topicGroup",
+        "topicGroupId",
+        "username"
+      ],
+      "serializedScoreEntries": 12073,
+      "nonemptyPasswords": 0
+    },
+    {
+      "path": "/stats",
+      "authenticated": false,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 40,
+      "bytes": 41805,
+      "errors": [],
+      "firstUserNameExposed": true,
+      "firstUserUsernameExposed": true
+    },
+    {
+      "path": "/history",
+      "authenticated": false,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 92,
+      "bytes": 234711,
+      "errors": [],
+      "firstUserTestIdsExposed": 26
+    },
+    {
+      "path": "/admin/users",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 112,
+      "bytes": 1362911,
+      "errors": []
+    },
+    {
+      "path": "/admin/history",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 383,
+      "bytes": 318685,
+      "errors": []
+    },
+    {
+      "path": "/admin/topics",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 46,
+      "bytes": 56560,
+      "errors": []
+    },
+    {
+      "path": "/admin/reports",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 45,
+      "bytes": 29806,
+      "errors": []
+    },
+    {
+      "path": "/admin/history?page=-1",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 61,
+      "bytes": 30593,
+      "errors": [
+        {
+          "name": "PrismaClientUnknownRequestError",
+          "indicators": [
+            "skip",
+            "Invalid value"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/admin/history?page=0",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 430,
+      "bytes": 318731,
+      "errors": []
+    },
+    {
+      "path": "/admin/history?page=foo",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 395,
+      "bytes": 318736,
+      "errors": []
+    },
+    {
+      "path": "/admin/history?page=1000000",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 277,
+      "bytes": 47658,
+      "errors": []
+    },
+    {
+      "path": "/admin/users/__runtime_review_missing_user__",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 548,
+      "bytes": 31544,
+      "errors": []
+    },
+    {
+      "path": "/api/tasks?page=0",
+      "authenticated": true,
+      "rsc": false,
+      "status": 500,
+      "location": null,
+      "contentType": null,
+      "ms": 60,
+      "bytes": 0,
+      "errors": []
+    },
+    {
+      "path": "/api/tasks?page=-1",
+      "authenticated": true,
+      "rsc": false,
+      "status": 500,
+      "location": null,
+      "contentType": null,
+      "ms": 58,
+      "bytes": 0,
+      "errors": []
+    },
+    {
+      "path": "/api/tasks?page=foo",
+      "authenticated": true,
+      "rsc": false,
+      "status": 500,
+      "location": null,
+      "contentType": null,
+      "ms": 60,
+      "bytes": 0,
+      "errors": []
+    },
+    {
+      "path": "/api/tasks?topics=invalid",
+      "authenticated": true,
+      "rsc": false,
+      "status": 500,
+      "location": null,
+      "contentType": null,
+      "ms": 58,
+      "bytes": 0,
+      "errors": []
+    },
+    {
+      "path": "/api/reports",
+      "authenticated": true,
+      "rsc": false,
+      "status": 400,
+      "location": null,
+      "contentType": "application/json",
+      "ms": 14,
+      "bytes": 38,
+      "errors": [],
+      "message": "from or to not specified"
+    },
+    {
+      "path": "/api/reports?from=invalid&to=invalid&topicGroup=all",
+      "authenticated": true,
+      "rsc": false,
+      "status": 400,
+      "location": null,
+      "contentType": "application/json",
+      "ms": 8,
+      "bytes": 49,
+      "errors": [],
+      "message": "Invalid date format. Use YYYY-MM-DD"
+    },
+    {
+      "path": "/api/reports?from=2026-05-24&to=2026-05-18&topicGroup=all",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/plain;charset=UTF-8",
+      "ms": 651,
+      "bytes": 40485,
+      "errors": [],
+      "message": null,
+      "reportRows": 185
+    },
+    {
+      "path": "/api/reports?from=2026-05-18&to=2026-05-24&topicGroup=unknown",
+      "authenticated": true,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/plain;charset=UTF-8",
+      "ms": 20,
+      "bytes": 49,
+      "errors": [],
+      "message": null,
+      "reportRows": 0
+    },
+    {
+      "path": "/t/invalid",
+      "authenticated": false,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 37,
+      "bytes": 29135,
+      "errors": [
+        {
+          "name": "Error",
+          "indicators": [
+            "NEXT_HTTP_ERROR_FALLBACK"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/t/invalid/review",
+      "authenticated": false,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 58,
+      "bytes": 30210,
+      "errors": [
+        {
+          "name": "PrismaClientKnownRequestError",
+          "indicators": [
+            "Malformed ObjectID",
+            "Inconsistent column data"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/t/000000000000000000000000/review",
+      "authenticated": false,
+      "rsc": false,
+      "status": 200,
+      "location": null,
+      "contentType": "text/html; charset=utf-8",
+      "ms": 28,
+      "bytes": 31042,
+      "errors": []
+    }
+  ]
+}

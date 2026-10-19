@@ -1,4 +1,8 @@
-"use client"
+"use client";
+import { useQueryClient } from '@tanstack/react-query';
+import { requestJson } from '@/lib/client-request';
+import { ConfirmDelete } from '@/components/confirm-delete';
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,29 +23,19 @@ import { useTaskFilters } from './use-filters';
 import { Input } from '@/components/ui/input';
 
 export const TasksTable = ({ initData }: { initData: { sources: any, topics: any } }) => {
-  const { data } = useTasks();
+  const { data, isPending, error } = useTasks();
+  const queryClient = useQueryClient();
   const [pageIndex, setPageIndex] = useState(0);
   const { filters, setFilter } = useTaskFilters();
 
-  const saveTask = async (values: any) => {
-    const response = await fetch(`/api/tasks/${(values.id || 'new')}`, {
-      method: "POST",
-      body: JSON.stringify(values)
-    });
-    if (response.status == 200) {
-      // fetchData(pageIndex)
-    }
-    else {
-      alert('Ошибка ' + response.statusText)
-    }
-  }
-
-  function deleteTask(id: string) {
-    fetch(`/api/tasks/${id}`, {
-      method: 'DELETE'
-    })
-    // .then(x => fetchData(pageIndex))
-  }
+  const saveTask = React.useCallback(async (values: any) => {
+    await requestJson(`/api/tasks/${values.id || 'new'}`, { method: 'POST', body: JSON.stringify(values) });
+    await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+  }, [queryClient]);
+  const deleteTask = React.useCallback(async (id: string) => {
+    await requestJson(`/api/tasks/${id}`, { method: 'DELETE' });
+    await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+  }, [queryClient]);
 
   const columns = useMemo<ColumnDef<any>[]>(
     () => [
@@ -92,30 +86,16 @@ export const TasksTable = ({ initData }: { initData: { sources: any, topics: any
         header: '',
         accessorKey: 'delete',
         cell: ({ row }) => (
-          <AlertDialog>
-            <AlertDialogTrigger className="cursor-pointer" asChild>
-              <Trash2 className="w-5 h-5" />
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Удалить задание?</AlertDialogTitle>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Отмена</AlertDialogCancel>
-                <AlertDialogAction onClick={() => deleteTask(row.getValue('id'))}>
-                  Удалить
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <ConfirmDelete title="Выключить задание?" description="Задание исчезнет из новых тестов. История сохранится." onDelete={() => deleteTask(row.original.id)}><Trash2 className="w-5 h-5" /></ConfirmDelete>
         ),
       }
     ],
-    [initData.topics]
+    [initData.topics, saveTask, deleteTask]
   );
 
   const table = useReactTable({
     data: data?.items ?? [],
+    getRowId: row => row.id,
     columns,
     pageCount: Math.ceil((data?.total ?? 0) / 20),
     manualPagination: true,
@@ -124,6 +104,8 @@ export const TasksTable = ({ initData }: { initData: { sources: any, topics: any
 
   return (
     <Card>
+      {isPending && <p>Загрузка…</p>}
+      {error && <p role="alert">{error.message}</p>}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <MultiSelect
           options={initData.topics.map((topic: any) => ({ value: topic.id, label: topic.name }))}

@@ -1,6 +1,6 @@
-import prisma from "@/data/prisma";
-import { NextResponse } from "next/server";
+import prisma from '@/data/prisma';
+import { getApiUser, apiError } from '@/lib/server/access';
 export async function GET(request: Request) {
-    const topics = await prisma.topic.findMany()
-    return new NextResponse(JSON.stringify(topics))
+  try { await getApiUser(request, true); return Response.json(await prisma.topic.findMany({ select: { id: true, name: true, section: true, active: true, topicGroupId: true } })); }
+  catch (error) { return apiError(error); }
 }

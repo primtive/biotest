@@ -1,0 +1,241 @@
+{
+  "fixturePrefix": "rt-stats-",
+  "environment": "local Next.js development server; restored dump",
+  "checks": {
+    "fractionalCompletion": {
+      "httpStatus": 200,
+      "expectedRawPercent": 33.333333333333336,
+      "storedPercent": 33,
+      "storedTestsCount": 1,
+      "ledgerEntries": 1,
+      "percentBsonType": "long"
+    },
+    "progressDenominator": {
+      "httpStatus": 200,
+      "activeTaskCount": 3,
+      "selectableTaskCount": 2,
+      "masteredSelectableCount": 2,
+      "storedPercent": 67,
+      "storedCorrectIdsCount": 2
+    },
+    "zeroAnswerCompletion": {
+      "httpStatus": 500,
+      "testMarkedComplete": true,
+      "completedAtWritten": true,
+      "counterBefore": 0,
+      "counterAfter": 0,
+      "ledgerBefore": 0,
+      "ledgerAfter": 0
+    },
+    "reportsingleDay": {
+      "httpStatus": 200,
+      "testCount": 1,
+      "score": 2,
+      "includedSyntheticCreatedAt": [
+        "2026-05-20T00:00:00Z"
+      ],
+      "intendedMoscowMay20": {
+        "testCount": 3,
+        "score": 6
+      },
+      "fullUtcMay20": {
+        "testCount": 3,
+        "score": 9
+      }
+    },
+    "reporttwoDays": {
+      "httpStatus": 200,
+      "testCount": 3,
+      "score": 9,
+      "includedSyntheticCreatedAt": [
+        "2026-05-20T00:00:00Z",
+        "2026-05-20T12:00:00Z",
+        "2026-05-20T22:00:00Z"
+      ],
+      "intendedMoscowMay20": {
+        "testCount": 3,
+        "score": 6
+      },
+      "fullUtcMay20": {
+        "testCount": 3,
+        "score": 9
+      }
+    },
+    "personalChartUnfinished": {
+      "httpStatus": 200,
+      "completedCount": 4,
+      "incompleteCount": 1,
+      "completedCorrect": 10,
+      "expectedMeanPerCompletedTest": 2.5,
+      "extractedCharts": [
+        [
+          {
+            "weekDate": "18 мая",
+            "count": 5,
+            "countCompleted": 4
+          }
+        ],
+        [
+          {
+            "weekDate": "18 мая",
+            "score": 2
+          }
+        ]
+      ]
+    }
+  },
+  "benchmarks": {
+    "personalStats342Tests": {
+      "firstRequestMsMayIncludeCompile": 53.7,
+      "firstStatus": 200,
+      "warmSamples": [
+        {
+          "status": 200,
+          "ms": 49,
+          "bytes": 100531
+        },
+        {
+          "status": 200,
+          "ms": 57,
+          "bytes": 100527
+        },
+        {
+          "status": 200,
+          "ms": 48.1,
+          "bytes": 97102
+        },
+        {
+          "status": 200,
+          "ms": 54.4,
+          "bytes": 100528
+        },
+        {
+          "status": 200,
+          "ms": 57.4,
+          "bytes": 100524
+        }
+      ],
+      "warmMedianMs": 54.4
+    },
+    "adminStats": {
+      "firstRequestMsMayIncludeCompile": 536.1,
+      "firstStatus": 200,
+      "warmSamples": [
+        {
+          "status": 200,
+          "ms": 562.8,
+          "bytes": 80095
+        },
+        {
+          "status": 200,
+          "ms": 464.3,
+          "bytes": 79983
+        },
+        {
+          "status": 200,
+          "ms": 484.4,
+          "bytes": 79990
+        },
+        {
+          "status": 200,
+          "ms": 482.7,
+          "bytes": 79987
+        },
+        {
+          "status": 200,
+          "ms": 489.7,
+          "bytes": 79990
+        }
+      ],
+      "warmMedianMs": 484.4
+    },
+    "report": {
+      "firstRequestMsMayIncludeCompile": 966.5,
+      "firstStatus": 200,
+      "warmSamples": [
+        {
+          "status": 200,
+          "ms": 999.3,
+          "bytes": 9593782
+        },
+        {
+          "status": 200,
+          "ms": 985.4,
+          "bytes": 9593782
+        },
+        {
+          "status": 200,
+          "ms": 981.9,
+          "bytes": 9593782
+        },
+        {
+          "status": 200,
+          "ms": 978.9,
+          "bytes": 9593782
+        },
+        {
+          "status": 200,
+          "ms": 1206.8,
+          "bytes": 9593782
+        }
+      ],
+      "warmMedianMs": 985.4
+    }
+  },
+  "explain": {
+    "personalTestHistory": {
+      "stages": [],
+      "executionStats": {
+        "docsExamined": 13719,
+        "keysExamined": 0,
+        "returned": 342,
+        "executionTimeMillis": 10
+      },
+      "winningPlan": "SORT"
+    },
+    "reportSamePipeline": {
+      "stages": [
+        {
+          "kind": "cursor",
+          "winningPlan": "PROJECTION_SIMPLE",
+          "docsExamined": 310,
+          "keysExamined": 0,
+          "returned": 189,
+          "executionTimeMillis": 726
+        },
+        {
+          "kind": "$lookup",
+          "returned": 189,
+          "executionTimeMillisEstimate": 723
+        },
+        {
+          "kind": "$project",
+          "returned": 189,
+          "executionTimeMillisEstimate": 723
+        },
+        {
+          "kind": "$sort",
+          "returned": 189,
+          "executionTimeMillisEstimate": 723
+        }
+      ]
+    }
+  },
+  "baselineCountsAtStart": {
+    "User": 306,
+    "Test": 13369,
+    "Task": 6022,
+    "Topic": 95,
+    "UserTopicProgress": 4338
+  },
+  "fixtures": {
+    "heavyUserCompletedTests": 342,
+    "heavyUserAnswers": 3420,
+    "heavyUserScores": 342
+  },
+  "cleanup": {
+    "users": 0,
+    "topics": 0,
+    "tasks": 0
+  }
+}

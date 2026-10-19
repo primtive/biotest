@@ -26,33 +26,35 @@ import { Input } from "@/components/ui/input"
 import { signIn } from "next-auth/react";
 import * as React from "react"
 import { PasswordInput } from "@/components/password-input"
+import { errorMessage } from '@/lib/client-request';
 
 const formSchema = z.object({
   username: z
-    .string({ message: 'Введите имя пользователя' })
+    .string({ message: 'Введите имя пользователя' }).trim().min(1, 'Введите имя пользователя'),
+  password: z.string().min(1, 'Введите пароль'),
 })
 
 export default function LoginForm() {
   const [loading, setLoading] = React.useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: { username: '', password: '' },
   })
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    const res = await signIn("credentials", {
-      callbackUrl: '/',
-      redirect: false,
-      username: values.username
-    });
-    setLoading(false);
-    if (res?.error) {
-      form.setError("username", {
-        type: "manual",
-        message: res?.error,
-      })
-    } else {
-      // router.push(res?.url!)
-      window.location.href = res?.url!
+    try {
+      const res = await signIn("credentials", {
+        callbackUrl: '/', redirect: false, username: values.username, password: values.password,
+      });
+      if (!res?.ok || res.error) {
+        form.setError('root', { message: 'Неверное имя пользователя или пароль' });
+      } else {
+        window.location.href = res.url || '/';
+      }
+    } catch (error) {
+      form.setError('root', { message: errorMessage(error) });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -73,12 +75,20 @@ export default function LoginForm() {
                     Имя пользователя
                   </FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input autoComplete="username" disabled={loading} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            <FormField control={form.control} name="password" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Пароль</FormLabel>
+                <FormControl><PasswordInput autoComplete="current-password" disabled={loading} {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            {form.formState.errors.root && <p role="alert" className="text-sm text-destructive">{form.formState.errors.root.message}</p>}
             <Button type="submit" disabled={loading} className="w-full">Вход</Button>
           </form>
         </Form>

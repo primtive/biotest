@@ -1,4 +1,7 @@
-"use client"
+"use client";
+import { requestJson } from '@/lib/client-request';
+import { ConfirmDelete } from '@/components/confirm-delete';
+
 import React, { ReactNode, useMemo, useState } from "react";
 import {
   useReactTable,
@@ -45,31 +48,15 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
   const [topics, setTopics] = useState<Array<any>>(initTopics);
   const router = useRouter();
 
-  function topicSave(values: any) {
-    if (values.id) {
-      fetch(`/api/topics/${values.id}`, {
-        method: 'POST',
-        body: JSON.stringify(values)
-      }).then(x => {
-        if (x.status == 200) window.location.reload()
-        else alert(x.statusText)
-      })
-    } else {
-      fetch(`/api/topics/new`, {
-        method: 'POST',
-        body: JSON.stringify(values)
-      }).then(x => {
-        if (x.status == 200) window.location.reload()
-        else alert(x.statusText)
-      })
-    }
-  }
-
-  function deleteTopic(id: string) {
-    fetch(`/api/topics/${id}`, {
-      method: 'DELETE'
-    }).then(x => window.location.reload())
-  }
+  React.useEffect(() => setTopics(initTopics), [initTopics]);
+  const topicSave = React.useCallback(async (values: any) => {
+    await requestJson(`/api/topics/${values.id || 'new'}`, { method: 'POST', body: JSON.stringify(values) });
+    router.refresh();
+  }, [router]);
+  const deleteTopic = React.useCallback(async (id: string) => {
+    await requestJson(`/api/topics/${id}`, { method: 'DELETE' });
+    router.refresh();
+  }, [router]);
 
   const columns = useMemo<ColumnDef<any>[]>(
     () => [
@@ -115,28 +102,16 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
             ?
             <Trash2 className="text-muted-foreground w-5 h-5" />
             :
-            <AlertDialog>
-              <AlertDialogTrigger className="cursor-pointer" asChild>
-                <Trash2 className="w-5 h-5" />
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Удалить тему?</AlertDialogTitle>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Отмена</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => deleteTopic(row.getValue('id'))}>Удалить</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <ConfirmDelete title="Выключить тему?" description="История тестов сохранится." onDelete={() => deleteTopic(row.original.id)}><Trash2 className="w-5 h-5" /></ConfirmDelete>
         )
       }
     ],
-    []
+    [topicSave, deleteTopic]
   );
 
   const table = useReactTable({
     data: topics,
+    getRowId: row => row.id,
     columns,
     state: {
       globalFilter,

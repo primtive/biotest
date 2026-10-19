@@ -1,0 +1,238 @@
+{
+  "run": "rt-api-1792436641069",
+  "base": "http://localhost:3001",
+  "startedAt": "2026-10-19T19:04:01.073Z",
+  "checks": [
+    {
+      "name": "unauthenticated_admin_creation",
+      "status": 200,
+      "created": true,
+      "admin": true
+    },
+    {
+      "name": "unauthenticated_admin_promotion",
+      "status": 200,
+      "beforeAdmin": false,
+      "afterAdmin": true
+    },
+    {
+      "name": "unauthenticated_topic_creation",
+      "status": 200,
+      "created": true
+    },
+    {
+      "name": "unauthenticated_task_creation",
+      "status": 200,
+      "created": true,
+      "unmodifiedEventHandlerStored": true
+    },
+    {
+      "name": "existing_read_auth_controls",
+      "tasksStatus": 403,
+      "reportsStatus": 403
+    },
+    {
+      "name": "username_only_login",
+      "csrfStatus": 200,
+      "authStatus": 200,
+      "sessionStatus": 200,
+      "authenticatedAsFixture": true,
+      "submittedPassword": false
+    },
+    {
+      "name": "username_only_admin_login",
+      "authStatus": 200,
+      "authenticatedAsFixture": true,
+      "sessionAdmin": true
+    },
+    {
+      "name": "unauthenticated_unfinished_foreign_test_review",
+      "status": 200,
+      "testIsComplete": false,
+      "correctAnswerVisible": true,
+      "rawEventHandlerInHtml": false,
+      "unescapedSvgInHtml": false,
+      "markerContext": "78f5fc9ac4e26112\\\",\\\"html\\\":\\\"\\u003csvg data-rt-api-marker=\\\\\\\"rt-api-1792436641069\\\\\\\" onload=\\\\\\\"document.documentElement.setAttribute('data-rt-api-probe','executed')\\\\\\\"\\u003e\\u003c/svg\\u003e\\\",\\\"answer\\\":\\\"rt-answer-visible-42\\\",\\\"line\\",
+      "javascriptExecutionTested": false
+    },
+    {
+      "name": "stored_html_event_handler_browser_execution",
+      "freshBrowserProfile": true,
+      "correctAnswerInRenderedDom": false,
+      "ownSvgInRenderedDom": false,
+      "eventHandlerExecuted": false
+    },
+    {
+      "name": "unauthenticated_mismatched_answer_to_completed_foreign_test",
+      "status": 200,
+      "responseCorrect": true,
+      "testStillComplete": true,
+      "answersCount": 1,
+      "storedBodyTaskIdInsteadOfUrl": true,
+      "storedTaskNotAssigned": true
+    },
+    {
+      "name": "duplicate_answer_submission",
+      "status": 200,
+      "answersBefore": 1,
+      "answersAfter": 2
+    },
+    {
+      "name": "concurrent_distinct_answers",
+      "submitted": 12,
+      "statusCodes": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "correctResponses": 12,
+      "storedAnswers": 2,
+      "lostAnswers": 10
+    },
+    {
+      "name": "unordered_answer_loses_symbol_multiplicity",
+      "status": 200,
+      "correctAnswer": "112",
+      "submittedAnswer": "12",
+      "accepted": true
+    },
+    {
+      "name": "unauthenticated_repeat_completion",
+      "statuses": [
+        200,
+        200
+      ],
+      "before": {
+        "admin": false,
+        "score": 0,
+        "testsCount": 0,
+        "percent": 0,
+        "scoresCount": 0
+      },
+      "afterFirst": {
+        "admin": false,
+        "score": 2,
+        "testsCount": 1,
+        "percent": 100,
+        "scoresCount": 1
+      },
+      "afterSecond": {
+        "admin": false,
+        "score": 4,
+        "testsCount": 2,
+        "percent": 100,
+        "scoresCount": 2
+      },
+      "sameTestScoreEntries": 2
+    },
+    {
+      "name": "completion_with_no_answers_partial_commit",
+      "status": 500,
+      "expectedAnswers": 2,
+      "actualAnswers": 0,
+      "isCompleteAfter": true,
+      "completedAtSet": true,
+      "userAfter": {
+        "admin": false,
+        "score": 0,
+        "testsCount": 0,
+        "percent": 0,
+        "scoresCount": 0
+      }
+    },
+    {
+      "name": "fractional_percent_handling",
+      "status": 200,
+      "correctAnswers": 17,
+      "allAnswers": 30,
+      "mathematicalPercent": 56.666666666666664,
+      "userAfter": {
+        "admin": false,
+        "score": 17,
+        "testsCount": 3,
+        "percent": 56,
+        "scoresCount": 3
+      }
+    },
+    {
+      "name": "unauthenticated_manual_score",
+      "status": 200,
+      "before": {
+        "admin": false,
+        "score": 0,
+        "testsCount": 0,
+        "percent": 0,
+        "scoresCount": 0
+      },
+      "after": {
+        "admin": false,
+        "score": 543,
+        "testsCount": 0,
+        "percent": 0,
+        "scoresCount": 1
+      }
+    },
+    {
+      "name": "get_creates_test",
+      "status": 200,
+      "countBefore": 2,
+      "countAfter": 3
+    },
+    {
+      "name": "inactive_cross_group_topic_generation",
+      "status": 200,
+      "testCreated": true,
+      "testUsesStudentGroup": true,
+      "hasInactiveForeignGroupTask": true
+    },
+    {
+      "name": "empty_test_generation",
+      "status": 200,
+      "testCreated": true,
+      "taskCount": 0
+    },
+    {
+      "name": "report_excludes_selected_end_day",
+      "statuses": [
+        200,
+        200
+      ],
+      "fixtureTestCreatedAt": "2099-01-01T12:00:00.000Z",
+      "testCountWithToSameDay": 0,
+      "testCountWithToNextDay": 1
+    },
+    {
+      "name": "unauthenticated_task_delete",
+      "status": 200,
+      "deleted": true
+    }
+  ],
+  "cleanup": {
+    "progressRemoved": 2,
+    "remainingTrackedFixtures": {
+      "TopicGroup": 0,
+      "Topic": 0,
+      "User": 0,
+      "Task": 0,
+      "Test": 0,
+      "UserTopicProgress": 0
+    },
+    "allTrackedFixturesRemoved": true,
+    "prefixResidue": {
+      "User": 0,
+      "Topic": 0,
+      "TopicGroup": 0,
+      "Task": 0
+    }
+  },
+  "finishedAt": "2026-10-19T19:04:36.651Z"
+}

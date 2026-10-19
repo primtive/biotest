@@ -8,29 +8,26 @@ import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 
 
 export const Leaderboard = ({ data, initTopicGroupId, userId }: { data: Array<any>, initTopicGroupId?: string, userId?: string }) => {
-  const [topicGroupId, setTopicGroupId] = React.useState(initTopicGroupId || '67962ae5e4f21c30e05aef91');
+  const [topicGroupId, setTopicGroupId] = React.useState(initTopicGroupId || data[0]?.topicGroupId || '');
   return (
     <>
       <Card>
         <div className='flex items-center justify-between'>
           <p className='text-center w-fit'>Топ по очкам</p>
           <ToggleGroup type="single" variant="outline" value={topicGroupId} onValueChange={(val) => { if (val) setTopicGroupId(val) }}>
-            <ToggleGroupItem value="67962ae5e4f21c30e05aef91">
-              ОГЭ
-            </ToggleGroupItem>
-            <ToggleGroupItem value="67962669e4f21c30e05aef8b">
-              ЕГЭ
-            </ToggleGroupItem>
+            {data.map(group => <ToggleGroupItem key={group.topicGroupId} value={group.topicGroupId}>{group.name}</ToggleGroupItem>)}
           </ToggleGroup>
         </div>
         <Table>
           <TableHeader>
+            <TableRow>
             <TableHead className='w-20'>Место</TableHead>
             <TableHead className='w-full'>Имя</TableHead>
             <TableHead className='w-30'>Очки</TableHead>
+            </TableRow>
           </TableHeader>
           <TableBody>
-            {data.find(x => x.topicGroupId == topicGroupId).leaderboard.map((user: any, i: number) => {
+            {(data.find(x => x.topicGroupId == topicGroupId)?.leaderboard || []).map((user: any, i: number) => {
               let color;
               switch (i) {
                 case 0:

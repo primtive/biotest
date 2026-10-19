@@ -1,0 +1,8 @@
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	reverse_proxy app:3000 {
+		# Send SSE and React streaming chunks immediately.
+		flush_interval -1
+	}
+}

@@ -11,6 +11,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form"
 import { z } from "zod";
+import { errorMessage, requestJson } from '@/lib/client-request';
 
 const FormSchema = z.object({
   items: z.array(z.string()).refine((value) => value.some((item) => item), {
@@ -21,6 +22,8 @@ const FormSchema = z.object({
 export default function Home({ topics, topicGroupId, topicPercentages }: { topics: Array<{ name: string, id: string, section: string, topicGroupId: string, topicGroup: { name: string } }>, topicGroupId: string, topicPercentages: Record<string, number> }) {
   const [mode, setMode] = React.useState(false);
   const [submitPressed, setSubmitPressed] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const starting = React.useRef(false);
   const router = useRouter()
   const topicGroupName = topicGroupId == '67962669e4f21c30e05aef8b' ? 'ЕГЭ' : 'ОГЭ'
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -39,17 +42,22 @@ export default function Home({ topics, topicGroupId, topicPercentages }: { topic
     );
   };
   async function start() {
-
+    if (starting.current) return;
+    setError('');
+    if (mode && !(await form.trigger('items'))) return;
+    starting.current = true;
     setSubmitPressed(true);
-
-    if (!mode) {
-      const req = await fetch('/api/test')
-      router.push(await req.text())
-    }
-    const isSelected = await form.trigger('items')
-    if (isSelected) {
-      const req = await fetch('/api/test?topics=' + form.getValues().items.join(','))
-      router.push(await req.text())
+    try {
+      const test = await requestJson<{ id: string; url: string }>('/api/test', {
+        method: 'POST',
+        body: JSON.stringify(mode ? { topicIds: form.getValues().items } : {}),
+      });
+      router.push(test.url);
+    } catch (error) {
+      setError(errorMessage(error));
+    } finally {
+      starting.current = false;
+      setSubmitPressed(false);
     }
   }
 
@@ -83,9 +91,9 @@ export default function Home({ topics, topicGroupId, topicPercentages }: { topic
                 control={form.control}
                 name="items"
                 render={() => (
+                  <FormItem>
                   <Table>
                     <TableBody>
-                      <FormItem>
                         {topics.map((item, index) => {
                           const section = item.section;
                           const showHeader = index === 0 || section !== topics[index - 1].section;
@@ -139,16 +147,17 @@ export default function Home({ topics, topicGroupId, topicPercentages }: { topic
                             </React.Fragment>
                           );
                         })}
-                        <FormMessage />
-                      </FormItem>
                     </TableBody>
                   </Table>
+                  <FormMessage role="alert" />
+                  </FormItem>
                 )}
               />
             </form>
           </Form>
         </Card>}
-      <Button className="w-full text-lg h-10" onClick={() => start()} disabled={submitPressed}>Начать</Button>
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      <Button className="w-full text-lg h-10" onClick={() => start()} disabled={submitPressed}>{submitPressed ? 'Подготовка…' : 'Начать'}</Button>
     </>
   );
 }

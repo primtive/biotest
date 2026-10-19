@@ -2,16 +2,35 @@
 
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import Zoom from 'react-medium-image-zoom'
 import 'react-medium-image-zoom/dist/styles.css'
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { errorMessage, requestJson } from '@/lib/client-request';
 
 export default function TaskCard({ task }: { task: { html: string, id: string, topic: string, line: string, source: string } }) {
   const [isReported, setIsReported] = React.useState(false)
+  const [open, setOpen] = React.useState(false)
+  const [pending, setPending] = React.useState(false)
+  const [error, setError] = React.useState('')
 
-  React.useEffect(() => { setIsReported(false); }, [task?.id])
+  React.useEffect(() => { setIsReported(false); setError(''); setOpen(false); }, [task?.id])
+
+  async function report() {
+    if (pending) return;
+    setPending(true);
+    setError('');
+    try {
+      await requestJson(`/api/tasks/${task.id}/report`, { method: 'POST' });
+      setIsReported(true);
+      setOpen(false);
+    } catch (error) {
+      setError(errorMessage(error));
+    } finally {
+      setPending(false);
+    }
+  }
 
   return <>
     <div className='flex gap-3 justify-between items-center mb-3'>
@@ -29,20 +48,19 @@ export default function TaskCard({ task }: { task: { html: string, id: string, t
           <CheckCircle /> Жалоба отправлена
         </div>
         : <>
-          <AlertDialog>
+          <AlertDialog open={open} onOpenChange={(value) => { if (!pending) setOpen(value); }}>
             <AlertDialogTrigger asChild>
               <Button variant="ghost"><AlertCircle /> <p className='hidden sm:block'>Пожаловаться</p></Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Пожаловаться на задание?</AlertDialogTitle>
+                <AlertDialogDescription>Его рассмотрит администратор.</AlertDialogDescription>
               </AlertDialogHeader>
-              <p className='text-sm'>
-                Его рассмотрит администратор.
-              </p>
+              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
               <AlertDialogFooter>
-                <AlertDialogCancel>Отмена</AlertDialogCancel>
-                <AlertDialogAction onClick={() => { fetch(`/api/tasks/${task.id}/report`, { method: 'POST' }); setIsReported(true); }}>Отправить жалобу</AlertDialogAction>
+                <AlertDialogCancel disabled={pending}>Отмена</AlertDialogCancel>
+                <Button disabled={pending} onClick={report}>{pending ? 'Отправка…' : 'Отправить жалобу'}</Button>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

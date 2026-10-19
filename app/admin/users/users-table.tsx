@@ -39,6 +39,9 @@ import {
   Row,
 } from '@tanstack/react-table';
 import { GroupSelect } from "./group-select";
+import { requestJson } from '@/lib/client-request';
+import { useRouter } from 'next/navigation';
+import { ConfirmDelete } from '@/components/confirm-delete';
 
 function multiSelectFilter(
   row: Row<any>, columnId: string, filterValue: any
@@ -47,40 +50,31 @@ function multiSelectFilter(
 }
 
 const UserTable = (data: { users: Array<User>, groups: string[] }) => {
+  const router = useRouter();
+  React.useEffect(() => setUsers(data.users), [data.users]);
   const [nameFilter, setNameFilter] = useState("");
   const [usernameFilter, setUsernameFilter] = useState("");
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [users, setUsers] = useState<Array<User>>(data.users);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  function onUserSave(values: { id?: string, name: string, username: string, admin: boolean, isArchive: boolean }) {
+  const onUserSave = React.useCallback(async (values: { id?: string, name: string, username: string, admin: boolean, isArchive: boolean }) => {
+    const { password: _password, ...publicValues } = values as typeof values & { password?: string };
+    const saved = await requestJson<{id: string}>(`/api/users/${values.id || 'new'}`, {
+      method: 'POST', body: JSON.stringify(values),
+    });
     if (values.id) {
-      fetch(`/api/users/${values.id}`, {
-        method: 'POST',
-        body: JSON.stringify(values)
-      })
-      const userIndex = users.findIndex(u => u.id == values.id!)
-      if (userIndex !== -1) {
-        const newUsers = [...users];
-        newUsers[userIndex] = { ...users[userIndex], ...values };
-        setUsers(newUsers);
-      }
+      setUsers(current => current.map(user => user.id === values.id ? { ...user, ...publicValues, id: saved.id } : user));
     } else {
-      fetch(`/api/users/new`, {
-        method: 'POST',
-        body: JSON.stringify(values)
-      }).then(x => x.json()).then(res => {
-        setUsers([...users, { ...values, id: res.id }]);
-      })
+      setUsers(current => [...current, { ...publicValues, id: saved.id } as User]);
     }
-  }
+    router.refresh();
+  }, [router]);
 
-  function deleteUser(id: string) {
-    fetch(`/api/users/${id}`, {
-      method: 'DELETE'
-    })
-    setUsers([...users].filter(u => u.id != id));
-  }
+  const deleteUser = React.useCallback(async (id: string) => {
+    await requestJson(`/api/users/${id}`, { method: 'DELETE' });
+    setUsers(current => current.filter(user => user.id !== id));
+  }, []);
 
   React.useEffect(() => {
     const newFilters = [];
@@ -175,9 +169,7 @@ const UserTable = (data: { users: Array<User>, groups: string[] }) => {
         accessorKey: "id",
         header: '',
         cell: ({ row }) => (
-          row.getValue('admin')
-            ? <Pencil className="text-muted-foreground w-5 h-5" />
-            : <UserEdit el={<Pencil className="w-5 h-5" />} data={row.original} id={row.getValue('id')} onSave={onUserSave} />
+          <UserEdit el={<Pencil className="w-5 h-5" />} data={row.original} id={row.getValue('id')} onSave={onUserSave} />
         ),
       },
       {
@@ -187,34 +179,19 @@ const UserTable = (data: { users: Array<User>, groups: string[] }) => {
           row.getValue('admin')
             ? <Trash2 className="text-muted-foreground w-5 h-5" />
             : (
-              <AlertDialog>
-                <AlertDialogTrigger className="cursor-pointer" asChild>
+              <ConfirmDelete title="Архивировать пользователя?" description="История и результаты сохранятся. Пользователь больше не сможет войти." onDelete={() => deleteUser(row.original.id)}>
                   <Trash2 className="w-5 h-5" />
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Удалить пользователя?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Все данные о прохождении тестов будут удалены
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Отмена</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => deleteUser(row.getValue('id'))}>
-                      Удалить
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              </ConfirmDelete>
             )
         ),
       }
     ],
-    []
+    [onUserSave, deleteUser]
   );
 
   const table = useReactTable({
     data: users,
+    getRowId: user => user.id,
     columns,
     state: {
       columnFilters,

@@ -8,7 +8,7 @@ import {
   SheetHeader,
   SheetContent,
   SheetTrigger,
-  SheetClose,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { Logo } from "../logo";
 
@@ -20,13 +20,12 @@ export function SheetMenu() {
           <MenuIcon size={20} />
         </Button>
       </SheetTrigger>
-      <SheetContent className="sm:w-72 px-3 h-full flex flex-col" side="left">
+      <SheetContent className="sm:w-72 px-3 h-full flex flex-col" side="left" aria-describedby={undefined}>
         <SheetHeader>
+          <SheetTitle className="sr-only">Навигация</SheetTitle>
           <Logo className="ml-4 mt-3" />
         </SheetHeader>
-        <SheetClose>
           <Menu isOpen isSheetMenu />
-        </SheetClose>
       </SheetContent>
     </Sheet>
   );

@@ -6,7 +6,7 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["linux-musl-openssl-3.0.x", "native"]
+  binaryTargets = ["darwin-arm64", "native", "linux-musl-arm64-openssl-3.0.x"]
   // output   = "../generated"
 }
 
@@ -20,12 +20,12 @@ model User {
   createdAt     DateTime            @default(now())
   lastAccess    DateTime            @default(now())
   username      String              @unique
-  name          String              @unique
+  name          String
   admin         Boolean             @default(false)
   password      String?
   group         String              @default("")
   scores        score[]
-  score         Int                 @default(0)
+  score         Float               @default(0)
   testsCount    Int                 @default(0)
   percent       Int                 @default(0)
   isArchive     Boolean             @default(false)
@@ -47,8 +47,13 @@ model Test {
   userId       String     @db.ObjectId
   topicGroup   TopicGroup @relation(fields: [topicGroupId], references: [id])
   topicGroupId String     @db.ObjectId
-  // topicsId    String[]  @default([]) @db.ObjectId
-  // topics      Topic[]   @relation(fields: [topicsId], references: [id])
+  snapshots    TaskSnapshot[]
+  snapshotSource String @default("recorded")
+
+  @@index([userId, createdAt])
+  @@index([userId, isComplete, completedAt])
+  @@index([topicGroupId, completedAt])
+  @@index([tasksIds])
 }
 
 model Task {
@@ -65,6 +70,8 @@ model Task {
   topicId     String   @db.ObjectId
   testIDs     String[] @default([]) @db.ObjectId
   tests       Test[]   @relation(fields: [testIDs], references: [id])
+
+  @@index([topicId, active, isReported])
 }
 
 model TopicGroup {
@@ -84,6 +91,8 @@ model Topic {
   topicGroupId String              @db.ObjectId
   Task         Task[]
   userProgress UserTopicProgress[]
+
+  @@index([topicGroupId, active])
 }
 
 model UserTopicProgress {
@@ -95,12 +104,13 @@ model UserTopicProgress {
   percent        Float    @default(0) // Percentage 0-100
   updatedAt      DateTime @updatedAt
   correctTaskIds String[] @db.ObjectId
+  version        Int?
 
   @@unique([userId, topicId])
 }
 
 type score {
-  score     Int
+  score     Float
   createdAt DateTime
   testId    String
 }
@@ -109,4 +119,17 @@ type answer {
   taskId  String  @db.ObjectId
   answer  String
   correct Boolean
+}
+
+type TaskSnapshot {
+  taskId String @db.ObjectId
+  topicId String @db.ObjectId
+  topicName String
+  html String
+  answer String
+  explanation String
+  line String
+  source String
+  disordered Boolean
+  missing Boolean @default(false)
 }

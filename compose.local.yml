@@ -1,0 +1,34 @@
+name: biotest-local
+
+services:
+  mongo:
+    image: mongo:4.4.6
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27018:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--quiet", "--eval", "quit(db.adminCommand({ping: 1}).ok === 1 ? 0 : 1)"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  mongo-init:
+    image: mongo:4.4.6
+    depends_on:
+      mongo:
+        condition: service_healthy
+    entrypoint: ["mongo", "--host", "mongo:27017", "--quiet", "--eval"]
+    command:
+      - >-
+        var status = db.adminCommand({replSetGetStatus: 1});
+        if (status.ok !== 1) {
+          if (status.code !== 94) { printjson(status); quit(1); }
+          var result = rs.initiate({_id: "rs0", members: [{_id: 0, host: "mongo:27017"}]});
+          if (result.ok !== 1) { printjson(result); quit(1); }
+        }
+        print("Replica set configured");
+
+volumes:
+  mongo_data:

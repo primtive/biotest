@@ -1,132 +1,19 @@
-import * as React from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
+'use client';
+import { useEffect, useId, useState } from 'react';
+import type { ReactNode } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Textarea } from "@/components/ui/textarea"
 import EditStringArray from '@/components/string-list-edit';
-import { cn } from '@/lib/utils';
-import { Eye } from 'lucide-react';
+import { errorMessage } from '@/lib/client-request';
+const empty={active:true,disordered:false,line:'',source:'',topicId:'',html:'',explanation:'',answer:''};
+export function TaskEdit({data, id, onSave, el, topics, className}: {data?: any; id?: string; onSave:(values:any)=>Promise<void>; el:ReactNode; topics:any[]; className?:string}) {
+ const [open,setOpen]=useState(false); const [pending,setPending]=useState(false); const [error,setError]=useState(''); const uid=useId();
 
-
-export const TaskEdit = ({ data, id, onSave, el, topics, className }: { data?: any, id?: string, onSave: (values: any) => void, el: React.ReactNode, topics: Array<any>, className?: string }) => {
-  const [active, setActive] = React.useState(data?.active)
-  const [disordered, setDisordered] = React.useState(data?.disordered)
-  const [line, setLine] = React.useState(data?.line)
-  const [source, setSource] = React.useState(data?.source)
-  const [topicId, setTopicId] = React.useState(data?.topicId)
-  const [html, setHtml] = React.useState(data?.html)
-  const [explanation, setExplanation] = React.useState(data?.explanation)
-  const [answer, setAnswer] = React.useState(data?.answer)
-  const [open, setOpen] = React.useState(false);
-  React.useEffect(() => {
-    setActive(data?.active);
-    setDisordered(data?.disordered);
-    setTopicId(data?.topicId);
-    setHtml(data?.html);
-    setExplanation(data?.explanation);
-    setAnswer(data?.answer);
-  }, [data]);
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className={cn(className, 'block')}>
-        {el}
-      </DialogTrigger>
-      <DialogContent className='gap-3'>
-        <DialogHeader>
-          <DialogTitle>Изменить задание <p className='text-sm text-muted-foreground'>(ID: {data?.id})</p></DialogTitle>
-          {/* <DialogDescription> ! Пока не работает !</DialogDescription> */}
-        </DialogHeader>
-        <div className='flex items-center gap-5'>
-          <div className='flex gap-2'>
-            <Checkbox id='active' checked={active} onCheckedChange={(val) => setActive(val)}></Checkbox>
-            <Label htmlFor='active'>Включить</Label>
-          </div>
-          <div className='flex gap-2'>
-            <Checkbox id='disordered' checked={disordered} onCheckedChange={(val) => setDisordered(val)}></Checkbox>
-            <Label htmlFor='disordered'>Неупорядоченное</Label>
-          </div>
-        </div>
-
-        <div className='flex items-center gap-5'>
-          <div className='flex gap-2 items-center'>
-            <Label htmlFor='line'>Линия</Label>
-            <Input id='line' value={line} onChange={(e) => setLine(e.target.value)} />
-          </div>
-          <div className='flex gap-2 items-center'>
-            <Label htmlFor='source'>Источник</Label>
-            <Input id='source' value={source} onChange={(e) => setSource(e.target.value)} />
-          </div>
-        </div>
-
-        <div className='space-y-1'>
-          <Label htmlFor='topic' >Тема</Label>
-          <Select defaultValue={topicId} onValueChange={(val) => setTopicId(val)}>
-            <SelectTrigger id='topic'>
-              <SelectValue placeholder="Выберите тему" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Темы</SelectLabel>
-                {topics.map(topic => <SelectItem key={topic.id} value={topic.id}>{topic.name}</SelectItem>)}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className='space-y-1'>
-          <div className='justify-between flex items-center'>
-            <Label htmlFor='content' >HTML код задания</Label>
-            <Dialog>
-              <DialogTrigger>
-                <Button variant={'ghost'} className='w-5 h-min'><Eye /></Button>
-              </DialogTrigger>
-              <DialogContent>
-                <div dangerouslySetInnerHTML={{ __html: html }} />
-              </DialogContent>
-            </Dialog>
-          </div>
-          <Textarea id='content' value={html} onChange={(e) => setHtml(e.target.value)} className='h-[150px]' />
-        </div>
-
-        <div className='space-y-1'>
-          <div className='justify-between flex items-center'>
-            <Label htmlFor='explanation' >HTML код пояснения</Label>
-            <Dialog>
-              <DialogTrigger>
-                <Button variant={'ghost'} className='w-5 h-min'><Eye /></Button>
-              </DialogTrigger>
-              <DialogContent>
-                <div dangerouslySetInnerHTML={{ __html: explanation }} />
-              </DialogContent>
-            </Dialog>
-          </div>
-          <Textarea id='explanation' value={explanation} onChange={(e) => setExplanation(e.target.value)} className='h-[150px]' />
-        </div>
-
-        <div className='space-y-1'>
-          <Label htmlFor='answer' >Ответ</Label>
-          <EditStringArray initialStrings={answer.split(', ')} onChange={(strings: any) => { setAnswer(strings.join(', ')) }} />
-        </div>
-        <Button onClick={() => { onSave({ topicId, html, answer, line, source, id, active, disordered, explanation, isReported: false }); setOpen(false) }}>Сохранить</Button>
-      </DialogContent>
-    </Dialog>
-  )
+ const [values,setValues]=useState(empty);
+ useEffect(()=>{if(open){setValues(Object.fromEntries(Object.entries(empty).map(([key, value]) => [key, data?.[key] ?? value])) as typeof empty);setError('');}},[open,id,data]);
+ const field=(key:keyof typeof empty,value:string|boolean)=>setValues(v=>({...v,[key]:value}));
+ async function save(e:React.FormEvent){e.preventDefault();if(pending)return;setPending(true);setError('');try{await onSave({...values,id,isReported:false});setOpen(false);}catch(e){setError(errorMessage(e));}finally{setPending(false);}}
+ return <Dialog open={open} onOpenChange={value=>{if(!pending)setOpen(value);}}><DialogTrigger asChild><span role="button" tabIndex={0} className={className}>{el}</span></DialogTrigger><DialogContent aria-describedby={undefined} className="max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>{id?'Изменить задание':'Создать задание'}</DialogTitle></DialogHeader><form onSubmit={save} className="space-y-3"><label><input type="checkbox" checked={values.active} disabled={pending} onChange={e=>field('active',e.target.checked)}/> Включить</label><label className="ml-3"><input type="checkbox" checked={values.disordered} disabled={pending} onChange={e=>field('disordered',e.target.checked)}/> Неупорядоченный ответ</label>{(['line','source'] as const).map(key=><label key={key} className="block" htmlFor={`${uid}-${key}`}>{key==='line'?'Линия':'Источник'}<Input id={`${uid}-${key}`} disabled={pending} value={values[key]} onChange={e=>field(key,e.target.value)}/></label>)}<label className="block">Тема<select className="block w-full border rounded p-2 bg-background" required disabled={pending} value={values.topicId} onChange={e=>field('topicId',e.target.value)}><option value="">Выберите тему</option>{topics.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>{(['html','explanation'] as const).map(key=><label key={key} className="block">{key==='html'?'HTML задания':'HTML пояснения'}<Textarea disabled={pending} value={values[key]} onChange={e=>field(key,e.target.value)}/><details><summary>Предпросмотр</summary><iframe title={`${uid}-${key}`} sandbox="" srcDoc={values[key]} className="w-full border bg-white"/></details></label>)}<label className="block">Варианты правильного ответа</label><EditStringArray initialStrings={values.answer.split(', ')} onChange={a=>field('answer',a.join(', '))}/>{error&&<p role="alert">{error}</p>}<Button disabled={pending} type="submit">{pending?'Сохранение…':'Сохранить'}</Button></form></DialogContent></Dialog>;
 }

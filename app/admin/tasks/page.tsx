@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/server/access";
 import * as React from 'react';
 import { TasksTable } from './tasks-table';
 import prisma from '@/data/prisma';
@@ -7,6 +8,7 @@ export const metadata = {
 };
 
 export default async function TasksPage() {
+  await requireAdmin();
   const topics = await prisma.topic.findMany()
   const uniqueSources = await prisma.task.findMany({
     distinct: ['source'],

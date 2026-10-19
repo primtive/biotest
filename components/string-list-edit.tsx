@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Plus, Trash } from 'lucide-react';
@@ -10,6 +10,8 @@ interface EditStringArrayProps {
 
 const EditStringArray: React.FC<EditStringArrayProps> = ({ initialStrings = [], onChange }) => {
   const [strings, setStrings] = useState<string[]>(initialStrings);
+  const valueKey = JSON.stringify(initialStrings);
+  useEffect(() => setStrings(JSON.parse(valueKey)), [valueKey]);
 
   // Handle adding a new string
   const handleAddString = () => {
@@ -42,10 +44,10 @@ const EditStringArray: React.FC<EditStringArrayProps> = ({ initialStrings = [], 
             value={str}
             onChange={(e) => handleEditString(index, e.target.value)}
           />
-          <Button onClick={() => handleDeleteString(index)} disabled={strings.length <= 1}><Trash /></Button>
+          <Button type="button" onClick={() => handleDeleteString(index)} disabled={strings.length <= 1}><Trash /></Button>
         </li>
       ))}
-      <Button onClick={handleAddString}><Plus /></Button>
+      <Button type="button" onClick={handleAddString}><Plus /></Button>
     </ul>
   );
 }

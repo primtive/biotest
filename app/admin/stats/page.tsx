@@ -1,96 +1,15 @@
-import { Card } from '@/components/ui/card';
-import * as React from 'react';
-import prisma from '@/data/prisma';
-import moment from 'moment'
-import CountUp from '@/components/count-up';
-import 'moment/locale/ru'
+import { requireAdmin } from '@/lib/server/access';
+import { getAdminStatistics, selectedTopicGroup } from '@/data/statistics';
+import { statisticsRange } from '@/data/statistics-utils';
+import { StatisticsFilter } from '@/components/statistics-filter';
 import { WeekChart } from '@/components/week-chart';
-
-moment.locale('ru');
-
-export const metadata = {
-  title: 'Статистика',
-};
-
-interface WeekAggregation {
-  weekDate: Date;
-  count: number;
-  countCompleted: number;
-}
-
-function groupTestsByWeek(tests: any[]): WeekAggregation[] {
-  const grouped: { [key: string]: WeekAggregation } = {};
-
-  tests.forEach((test) => {
-    if (!test.createdAt) return
-    const weekStart = getWeekStartDate(test.createdAt);
-    const weekKey = weekStart.toISOString();
-    if (!grouped[weekKey]) {
-      grouped[weekKey] = {
-        weekDate: weekStart,
-        count: 0,
-        countCompleted: 0,
-      };
-    }
-    grouped[weekKey].count++;
-    if (test.isComplete) grouped[weekKey].countCompleted++;
-  });
-  return Object.values(grouped).sort((a, b) => a.weekDate.getTime() - b.weekDate.getTime());
-}
-
-function getWeekStartDate(date: Date): Date {
-  const dayOfWeek = date.getDay();
-  const startOfWeek = new Date(date);
-  startOfWeek.setDate(date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
-  startOfWeek.setHours(0, 0, 0, 0);
-  return startOfWeek;
-}
-
-export default async function StatsPage({ searchParams }: { searchParams: any }) {
-  const testCount = await prisma.test.count()
-  const userCount = await prisma.user.count()
-  const taskCount = await prisma.task.count()
-
-  const testHistory = await prisma.test.findMany({
-    orderBy: { createdAt: 'asc' },
-  })
-
-  const taskCompletedCount = testHistory.reduce((acc, x) => acc + x.answers.length, 0);
-
-  const groupedTests = groupTestsByWeek(testHistory);
-
-  const weekData = groupedTests.map((item) => ({
-    weekDate: moment(item.weekDate).format('DD MMM'),
-    count: item.count,
-    countCompleted: item.countCompleted,
-  }));
-
-  return (
-    <>
-      <p className='text-2xl'>Статистика</p>
-      <div className='flex gap-2 flex-wrap'>
-        <Card>
-          <p className='text-xl'>Пользователи</p>
-          <CountUp className='text-2xl' duration={1} end={userCount} />
-        </Card>
-        <Card>
-          <p className='text-xl'>Задания</p>
-          <CountUp className='text-2xl' duration={1} end={taskCount} />
-        </Card>
-        <Card className='w-[100px]'>
-          <p className='text-xl'>Тесты</p>
-          <CountUp className='text-2xl' duration={1} end={testCount} />
-        </Card>
-        <Card>
-          <p className='text-xl w-min'>Завершено заданий</p>
-          <CountUp className='text-2xl' duration={1} end={taskCompletedCount} />
-        </Card>
-      </div>
-      <Card>
-        <p className='mb-3'>Тесты по неделям</p>
-        <WeekChart data={weekData} />
-      </Card>
-      <Card>Пока на этом все :)</Card>
-    </>
-  );
+import { ScoreChart } from '@/components/score-chart';
+import { Card } from '@/components/ui/card';
+export const metadata = { title: 'Статистика' };
+export default async function StatsPage({ searchParams }: { searchParams: Promise<{ from?: string; to?: string; topicGroup?: string }> }) {
+  await requireAdmin(); const filter = await searchParams;
+  let range; try { range = statisticsRange(filter.from, filter.to); selectedTopicGroup(filter.topicGroup); } catch (error) { return <p role="alert">{(error as Error).message} <a href="/admin/stats">Сбросить фильтры</a></p>; }
+  const stats = await getAdminStatistics(filter);
+  const values = { 'Неархивные ученики': stats.userCount, 'Доступные задания': stats.taskCount, 'Начато тестов': stats.startedCount, 'Завершено тестов': stats.completedCount, 'Активные ученики': stats.activeUsers, 'Принято ответов': stats.answeredCount, 'Правильные ответы': stats.correctCount, 'Точность, %': stats.accuracy };
+  return <><h1 className="text-2xl">Статистика</h1><StatisticsFilter range={range} admin topicGroup={filter.topicGroup} /><div className="flex flex-wrap gap-3">{Object.entries(values).map(([label, value]) => <Card key={label}><p>{label}</p><p className="text-2xl">{value}</p></Card>)}</div><Card><h2>Начало и завершение тестов по неделям</h2><WeekChart data={stats.weeks} /></Card><Card><h2>Правильных ответов в среднем за завершённый тест</h2><ScoreChart data={stats.weeks} /></Card><p className="text-sm text-muted-foreground">Начатые тесты учитываются по дате начала, завершённые — по дате завершения. Повторные ответы в старых тестах не увеличивают результат.</p></>;
 }

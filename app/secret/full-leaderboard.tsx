@@ -27,9 +27,11 @@ export const FullLeaderboard = ({ data, initTopicGroupId, userId }: { data: Arra
         <ScrollArea className="h-96">
           <Table>
             <TableHeader>
+              <TableRow>
               <TableHead className='w-20'>Место</TableHead>
               <TableHead className='w-full'>Имя</TableHead>
               <TableHead className='w-30'>Очки</TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
 

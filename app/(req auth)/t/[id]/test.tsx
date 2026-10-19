@@ -1,8 +1,11 @@
 "use client"
 import { Task } from './task';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { usePathname, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { errorMessage, requestJson } from '@/lib/client-request';
 import * as React from 'react';
 
 enum Answer {
@@ -14,85 +17,75 @@ enum Answer {
 type AnswersBD = Array<{ taskId: string, answer: string, correct: boolean }>
 type Tasks = Array<{ id: string, html: string, topic: string, line: string, source: string }>
 
-
 export const Test = ({ tasks, id, initTaskAnswers }: { tasks: Tasks, id: string, initTaskAnswers: AnswersBD }) => {
   const router = useRouter();
-  const pathname = usePathname()
-  const completePath = `${pathname}/review`;
-  const taskCount = tasks.length
-  const [taskIndex, setTaskIndex] = React.useState(initTaskAnswers ? initTaskAnswers.length : 0)
-  const [taskAnswers, setTaskAnswers] = React.useState(tasks.map(task => {
-    const taskAnswer = initTaskAnswers.find(x => x.taskId == task.id)
-    if (taskAnswer) return { id: task.id, userAnswer: taskAnswer.answer, correct: taskAnswer.correct ? Answer.Correct : Answer.Incorrect }
-    return { id: task.id, userAnswer: '', correct: Answer.NotAnswered }
-  }))
-  const [loading, setLoading] = React.useState(false);
+  const pathname = usePathname();
+  const { update } = useSession();
+  const [taskAnswers, setTaskAnswers] = React.useState(() => tasks.map(task => {
+    const answer = initTaskAnswers.find(x => x.taskId === task.id);
+    return { id: task.id, userAnswer: answer?.answer ?? '', correct: answer ? (answer.correct ? Answer.Correct : Answer.Incorrect) : Answer.NotAnswered };
+  }));
+  const [pending, setPending] = React.useState(false);
+  const [finishing, setFinishing] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const sending = React.useRef(false);
+  const completing = React.useRef(false);
+  const taskIndex = taskAnswers.findIndex(answer => answer.correct === Answer.NotAnswered);
+  const allAnswered = tasks.length > 0 && taskIndex === -1;
 
   async function onAnswer(answer: string) {
-    let items = [...taskAnswers];
-    items[taskIndex].userAnswer = answer;
-    const res = await fetch(`/api/tasks/${items[taskIndex].id}/complete`,
-      { method: 'POST', body: JSON.stringify({ ...items[taskIndex], testId: id }) }
-    )
-    const data = await res.json()
-    items[taskIndex].correct = data.correct ? Answer.Correct : Answer.Incorrect;
-    setTaskAnswers(items);
-    setTaskIndex(taskIndex + 1)
+    if (sending.current || taskIndex < 0) return;
+    sending.current = true;
+    setPending(true);
+    setError('');
+    const taskId = tasks[taskIndex].id;
+    try {
+      const data = await requestJson<{ correct: boolean }>(`/api/tasks/${taskId}/complete`, {
+        method: 'POST', body: JSON.stringify({ testId: id, userAnswer: answer }),
+      });
+      setTaskAnswers(items => items.map(item => item.id === taskId ? {
+        ...item, userAnswer: answer, correct: data.correct ? Answer.Correct : Answer.Incorrect,
+      } : item));
+    } catch (error) {
+      setError(errorMessage(error));
+    } finally {
+      sending.current = false;
+      setPending(false);
+    }
   }
 
-  React.useEffect(() => {
-    if (taskCount == taskIndex) {
-      setLoading(true)
-      fetch(`/api/complete/${id}`,
-        { method: 'POST', body: JSON.stringify(taskAnswers) }
-      ).then(res => router.push(completePath))
+  const complete = React.useCallback(async () => {
+    if (completing.current) return;
+    completing.current = true;
+    setFinishing(true);
+    setError('');
+    try {
+      await requestJson(`/api/complete/${id}`, { method: 'POST' });
+      await update();
+      router.refresh();
+      router.replace(`${pathname}/review`);
+    } catch (error) {
+      completing.current = false;
+      setFinishing(false);
+      setError(errorMessage(error));
     }
-  }, [taskIndex])
+  }, [id, pathname, router, update]);
 
-  return (
-    // <div className='max-w-[600px] space-y-3 mx-auto'>
-    <>
-      <Card className='flex justify-between'>
-        <div className='flex gap-1 items-center'>
-          {taskAnswers.map(task => {
-            var color;
-            switch (task.correct) {
-              case Answer.NotAnswered:
-                color = 'bg-slate-300'
-                break
-              case Answer.Correct:
-                color = 'bg-green-600'
-                break
-              case Answer.Incorrect:
-                color = 'bg-red-500'
-                break
-            }
-            return <div className={cn('h-4 w-4 rounded-sm', color)} />
-          }
-          )}
-        </div>
-        <p className='leading-none'>{`№ ${taskIndex + 1}/${taskCount}`}</p>
-      </Card>
-      <div>
-        {loading ?
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={cn("animate-spin")}
-          >
-            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-          </svg>
-          :
-          <Task task={tasks[taskIndex]} onAnswer={onAnswer} />}
+  React.useEffect(() => {
+    if (allAnswered) void complete();
+  }, [allAnswered, complete]);
+
+  return <>
+    <Card className='flex justify-between'>
+      <div className='flex flex-wrap gap-1 items-center'>
+        {taskAnswers.map(task => <div key={task.id} className={cn('h-4 w-4 rounded-sm', task.correct === Answer.NotAnswered ? 'bg-slate-300' : task.correct === Answer.Correct ? 'bg-green-600' : 'bg-red-500')} />)}
       </div>
-      {/* </div> */}
-    </>
-  )
+      <p className='leading-none'>{allAnswered ? `${tasks.length}/${tasks.length}` : `№ ${taskIndex + 1}/${tasks.length}`}</p>
+    </Card>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    {allAnswered ?
+      <div aria-live="polite">{finishing ? <p>Сохранение результата…</p> : <Button onClick={() => void complete()}>Повторить завершение</Button>}</div>
+      : tasks[taskIndex] ? <Task key={tasks[taskIndex].id} task={tasks[taskIndex]} onAnswer={onAnswer} pending={pending} />
+      : <p role="alert">В тесте нет доступных заданий.</p>}
+  </>;
 }

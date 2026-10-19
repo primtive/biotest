@@ -1,3 +1,4 @@
+import { requestJson } from '@/lib/client-request';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 
@@ -13,10 +14,8 @@ export function useTasks() {
   return useQuery({
     queryKey: ['tasks', page, topics, sources, line],
     queryFn: async () => {
-      const res = await fetch(
-        `/api/tasks?page=${page}&topics=${topics}&sources=${sources}&line=${line}`
-      );
-      return res.json();
+      const query = new URLSearchParams({ page, topics, sources, line });
+      return requestJson<any>(`/api/tasks?${query}`);
     },
   });
 }

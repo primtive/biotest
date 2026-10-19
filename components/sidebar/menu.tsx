@@ -25,7 +25,7 @@ interface MenuProps {
 
 export function Menu({ isOpen, isSheetMenu }: MenuProps) {
 
-  const Wrapper = isSheetMenu ? SheetClose : React.Fragment;
+  const Wrapper = isSheetMenu ? SheetClose : ({ children }: { children: React.ReactNode; asChild?: boolean }) => <>{children}</>;
 
   const { data: session } = useSession();
   const pathname = usePathname();

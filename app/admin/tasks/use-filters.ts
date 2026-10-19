@@ -7,7 +7,7 @@ export function useTaskFilters() {
   const params = useSearchParams();
 
   const filters = {
-    page: Number(params.get('page') || 1),
+    page: Math.max(1, Number(params.get('page')) || 1),
     topics: params.get('topics')?.split(',').filter(Boolean) ?? [],
     sources: params.get('sources')?.split(',').filter(Boolean) ?? [],
     line: params.get('line') ?? '',

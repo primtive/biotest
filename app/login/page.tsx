@@ -10,7 +10,7 @@ export const metadata = {
 
 export default async function Login() {
   const session = await getServerSession(authOptions)
-  if (session) redirect('/')
+  if (session?.user) redirect('/')
   return (
     <>
       <div className='flex h-fit w-full items-center justify-center px-4'>

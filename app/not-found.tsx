@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { buttonVariants } from '@/components/ui/button';
 import * as React from 'react';
 
@@ -9,7 +10,7 @@ export default function notFound() {
     return (
         <>
             <p>Страница не найдена</p>
-            <a href='/' className={buttonVariants()}>На главную</a>
+            <Link href='/' className={buttonVariants()}>На главную</Link>
         </>
     );
 }
