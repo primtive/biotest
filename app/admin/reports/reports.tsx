@@ -1,187 +1,35 @@
-"use client";
-import { requestJson, errorMessage } from '@/lib/client-request';
-
-import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import moment from "moment";
-import { addDays, format } from "date-fns"
-import { ru } from "date-fns/locale/ru";
-import { Calendar } from "@/components/ui/calendar"
-import { toast } from "sonner"
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { useLocalStorage } from 'usehooks-ts'
-import ReportTable, { UserReport } from "./report-table";
-
-type ReportData = {
-  data: UserReport[],
-  from: string,
-  to: string,
+'use client';
+import { PaginationControls, type PaginationProps } from '@/components/pagination-controls';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { dateInMoscow } from '@/data/statistics-utils';
+import { requestJson } from '@/lib/client-request';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useLocalStorage } from 'usehooks-ts';
+import ReportTable, { type UserReport } from './report-table';
+type ReportData = PaginationProps & { data: UserReport[]; from: string; to: string };
+export default function Reports() {
+  const params = useSearchParams(), router = useRouter();
+  const today = dateInMoscow(), weekAgo = dateInMoscow(new Date(Date.now() - 6 * 86400000));
+  const [range, setRange] = useState({ from: weekAgo, to: today, topicGroup: 'all', completedOnly: true });
+  const [filter, setFilter] = useState(range);
+  const [testGoal, setTestGoal] = useLocalStorage('testGoal', 0, { initializeWithValue: false }), [scoreGoal, setScoreGoal] = useLocalStorage('scoreGoal', 0, { initializeWithValue: false });
+  const page = params.get('page') || '1', pageSize = params.get('pageSize') || '20';
+  const sort = params.get('sort') || 'testCount', direction = params.get('direction') || 'desc';
+  const { data, isFetching, error } = useQuery({ queryKey: ['reports', filter, page, pageSize, sort, direction], queryFn: ({ signal }) => requestJson<ReportData>(`/api/reports?${new URLSearchParams({ ...filter, completedOnly: String(filter.completedOnly), page, pageSize, sort, direction })}`, { signal }), placeholderData: keepPreviousData });
+  return <Card className="min-w-0 space-y-4"><h1 className="text-xl font-semibold">Отчёты</h1>
+    <form onSubmit={e => { e.preventDefault(); setFilter(range); const query = new URLSearchParams(params.toString()); query.set('page', '1'); router.replace(`?${query}`, { scroll: false }); }} className="flex flex-wrap items-end gap-3 rounded-lg bg-muted/40 p-3">
+      <label className="space-y-1 text-sm">С<Input type="date" required value={range.from} onChange={e => setRange({ ...range, from: e.target.value })} /></label>
+      <label className="space-y-1 text-sm">По<Input type="date" required min={range.from} value={range.to} onChange={e => setRange({ ...range, to: e.target.value })} /></label>
+      <label className="space-y-1 text-sm">Группа<select className="block h-9 rounded-md border bg-background px-3" value={range.topicGroup} onChange={e => setRange({ ...range, topicGroup: e.target.value })}><option value="all">ОГЭ / ЕГЭ</option><option value="oge">ОГЭ</option><option value="ege">ЕГЭ</option></select></label>
+      <label className="flex h-9 items-center gap-2 text-sm"><input type="checkbox" checked={range.completedOnly} onChange={e => setRange({ ...range, completedOnly: e.target.checked })} />Только завершённые</label>
+      <Button type="submit" variant="secondary" disabled={isFetching}>Показать</Button>
+    </form>
+    <div className="flex flex-wrap items-center gap-3"><label className="flex items-center gap-2 text-sm">Норма тестов<Input className="w-20" type="number" min={0} value={testGoal} onChange={e => setTestGoal(Number(e.target.value))} /></label><label className="flex items-center gap-2 text-sm">Норма очков<Input className="w-20" type="number" min={0} value={scoreGoal} onChange={e => setScoreGoal(Number(e.target.value))} /></label>{isFetching && <span className="text-sm text-muted-foreground">Загрузка…</span>}</div>
+    {error && <p role="alert">{error.message}</p>}
+    {data && <><ReportTable data={data.data} scoreGoal={scoreGoal} testGoal={testGoal} /><PaginationControls {...data} loading={isFetching} /></>}
+  </Card>;
 }
-
-interface DateRange {
-  from: Date;
-  to?: Date;
-}
-
-
-
-const Reports = () => {
-
-  const [period, setPeriod] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  })
-
-  const [report, setReport] = useState<ReportData>()
-  const [topicGroup, setTopicGroup] = useState<string>('all')
-  const [mode, setMode] = useState<string>('week')
-  const [isPending, setPending] = useState(false)
-  const [completedOnly, setCompletedOnly] = useState<boolean>(true);
-
-  const getDateRange = (range: string): DateRange => {
-    const now = new Date(); // или dayjs() если используете dayjs
-    let from: Date;
-    let to: Date;
-
-    switch (range) {
-      case 'week': // Прошедшая неделя (пн-вс)
-        const lastSunday = new Date(now);
-        lastSunday.setDate(now.getDate() - now.getDay()); // Переход на прошлое воскресенье
-        const lastMonday = new Date(lastSunday);
-        lastMonday.setDate(lastSunday.getDate() - 6);
-
-        from = lastMonday;
-        to = lastSunday;
-        break;
-
-      case 'month': // Прошедший месяц
-        const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-
-        from = firstDayOfLastMonth;
-        to = lastDayOfLastMonth;
-        break;
-
-      case '7d': // Последние 7 дней
-        from = new Date(now);
-        from.setDate(now.getDate() - 6); // Включая сегодня
-        to = new Date(now);
-        break;
-
-      case '30d': // Последние 30 дней
-        from = new Date(now);
-        from.setDate(now.getDate() - 29); // Включая сегодня
-        to = new Date(now);
-        break;
-
-      default:
-        from = new Date(now);
-        to = new Date(now);
-    }
-
-    return { from, to };
-  };
-
-  useEffect(() => {
-    if (mode !== 'custom') {
-      setPeriod(getDateRange(mode))
-    }
-  }, [mode])
-
-  async function getData() {
-    if (!period?.from || !period?.to || period.from > period.to) { toast.error('Выберите корректные начальную и конечную даты'); return; }
-    setPending(true);
-    try {
-      const query = new URLSearchParams({ from: moment(period.from).format('YYYY-MM-DD'), to: moment(period.to).format('YYYY-MM-DD'), topicGroup });
-      if (completedOnly) query.set('completedOnly', 'true');
-      setReport(await requestJson<ReportData>(`/api/reports?${query}`));
-    } catch (error) { toast.error(errorMessage(error)); }
-    finally { setPending(false); }
-  }
-
-  const [scoreGoal, setScoreGoal] = useLocalStorage<number>('scoreGoal', 0)
-  const [testGoal, setTestGoal] = useLocalStorage<number>('testGoal', 0)
-
-
-
-  return (
-    <Card className="space-y-2">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div>
-          <Calendar
-            locale={ru}
-            initialFocus
-            mode="range"
-            defaultMonth={period?.from}
-            selected={period}
-            onSelect={(period) => {
-              setPeriod(period?.from ? { from: period.from, to: period.to } : undefined)
-              setMode('custom')
-            }}
-            numberOfMonths={1}
-            className="p-0 m-auto w-min md:m-0"
-          />
-        </div>
-        <div className="flex flex-wrap flex-col gap-3">
-          <Select name="topicGroup" onValueChange={setTopicGroup} value={topicGroup} >
-            <SelectTrigger>
-              <SelectValue placeholder="Выберите группу" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="all">ОГЭ / ЕГЭ</SelectItem>
-                <SelectItem value="oge">ОГЭ</SelectItem>
-                <SelectItem value="ege">ЕГЭ</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Select name="mode" onValueChange={setMode} value={mode}>
-            <SelectTrigger>
-              <SelectValue placeholder="Выберите режим" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="week">Прошедшая неделя</SelectItem>
-                <SelectItem value="month">Прошедший месяц</SelectItem>
-                <SelectItem value="7d">Последние 7 дней</SelectItem>
-                <SelectItem value="30d">Последние 30 дней</SelectItem>
-                <SelectItem value="custom">Выбрать даты</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-3">
-            <Checkbox id="completed-only" onCheckedChange={(v) => setCompletedOnly(Boolean(v))} checked={completedOnly} />
-            <Label htmlFor="completed-only">Только завершенные тесты</Label>
-          </div>
-          <Button onClick={getData} variant={"secondary"} disabled={isPending}>Сформировать</Button>
-        </div>
-        <div className="grid grid-cols-2 gap-3 justify-center content-center items-center w-fit">
-          <Label htmlFor="test-count" className="text-right">Норма тестов</Label>
-          <Input id="test-count" type="number" value={testGoal} onChange={(e) => setTestGoal(parseInt(e.target.value))} />
-          <Label htmlFor="score-count" className="text-right">Норма счета</Label>
-          <Input id="score-count" type="number" value={scoreGoal} onChange={(e) => setScoreGoal(parseInt(e.target.value))} />
-        </div>
-      </div>
-      {report && <p className="p-2">Отчет {format(report.from, 'd MMM', { locale: ru })} - {format(report.to, 'd MMM', { locale: ru })}</p>}
-      {/* <ScrollArea className="w-full flex h-[600px] "> */}
-      {report ?
-        <>
-          <ReportTable data={report.data} scoreGoal={scoreGoal} testGoal={testGoal} />
-        </>
-        :
-        isPending ?
-          <Skeleton className="w-full" />
-          :
-          <div className="w-full" />
-      }
-      {/* </ScrollArea> */}
-    </Card >
-  );
-};
-
-export default Reports;

@@ -1,11 +1,10 @@
 import { ObjectId } from 'mongodb';
 import { getMongoDb, getMongoClient } from '@/data/mongo';
 import { z } from 'zod';
-import { hash } from 'bcrypt';
 import prisma from '@/data/prisma';
-import { getApiUser, apiError, parseId, idSchema, passwordSchema, readJson, HttpError } from '@/lib/server/access';
+import { getApiUser, apiError, parseId, idSchema, readJson, HttpError } from '@/lib/server/access';
 import { invalidateStatistics } from '@/data/statistics';
-const input = z.object({ id: idSchema.optional(), name: z.string().trim().min(1).max(160), username: z.string().trim().min(1).max(128), topicGroupId: idSchema, group: z.string().trim().max(160).default(''), isArchive: z.boolean().default(false), password: passwordSchema.optional() }).strict();
+const input = z.object({ id: idSchema.optional(), name: z.string().trim().min(1).max(160), username: z.string().trim().min(1).max(128), topicGroupId: idSchema, group: z.string().trim().max(160).default(''), isArchive: z.boolean().default(false) }).strict();
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const actor = await getApiUser(request, true); const routeId = (await props.params).id;
@@ -14,12 +13,10 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (body.id && body.id !== id) throw new HttpError(400, 'Идентификаторы не совпадают');
     if (!await prisma.topicGroup.findUnique({ where: { id: body.topicGroupId }, select: { id: true } })) throw new HttpError(400, 'Группа заданий не найдена');
     if (await prisma.user.findFirst({ where: { username: body.username, ...(id ? { id: { not: id } } : {}) }, select: { id: true } })) throw new HttpError(409, 'Логин уже занят');
-    if (!id && !body.password) throw new HttpError(400, 'Для нового пользователя нужен пароль');
     const existing = id ? await prisma.user.findUnique({ where: { id }, select: { admin: true } }) : null;
     if (id && !existing) throw new HttpError(404, 'Пользователь не найден');
     if (body.isArchive && (actor.id === id || existing?.admin)) throw new HttpError(409, 'Административный аккаунт нельзя архивировать здесь');
-    const { password, id: _id, ...fields } = body;
-    const data = { ...fields, ...(password ? { password: await hash(password, 12) } : {}) };
+    const { id: _id, ...data } = body;
     const db = await getMongoDb();
     await db.createCollection('UsernameReservation').catch((error: any) => { if (error.code !== 48) throw error; });
     const uid = id ? new ObjectId(id) : new ObjectId();
@@ -38,7 +35,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
         }
       });
     } finally { await session.endSession(); }
-    invalidateStatistics(String(uid)); return Response.json({ ok: true, id: String(uid) });
+    await invalidateStatistics(String(uid)); return Response.json({ ok: true, id: String(uid) });
   } catch (error) { return apiError(error); }
 }
 export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
@@ -48,6 +45,6 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
     if (!user) throw new HttpError(404, 'Пользователь не найден');
     if (id === actor.id || user.admin) throw new HttpError(409, 'Административный аккаунт нельзя архивировать здесь');
     await prisma.user.update({ where: { id }, data: { isArchive: true } });
-    invalidateStatistics(id); return Response.json({ ok: true });
+    await invalidateStatistics(id); return Response.json({ ok: true });
   } catch (error) { return apiError(error); }
 }

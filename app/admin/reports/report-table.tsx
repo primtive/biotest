@@ -1,20 +1,18 @@
-import * as React from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { ColumnDef, ColumnFiltersState, flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
+  TableRow
+} from "@/components/ui/table";
 import { UserBadge } from "@/components/user-badge";
-import { ArrowUpDown, CircleCheck, CircleX } from "lucide-react";
-import { Button } from '@/components/ui/button';
-import { cn } from "@/lib/utils";
 import topicGroups from "@/data/topicGroups";
+import { cn } from "@/lib/utils";
+import { ColumnDef, ColumnFiltersState, flexRender, getCoreRowModel, getFilteredRowModel, SortingState, useReactTable } from "@tanstack/react-table";
+import { ArrowUpDown, CircleCheck, CircleX } from "lucide-react";
+import { useRouter, useSearchParams } from 'next/navigation';
 import { memo, useState } from 'react';
 
 
@@ -34,15 +32,14 @@ type ReportTableProps = {
 }
 
 const SortButton = ({ column, text }: { column: any, text: string }) => {
-  return <Button
-    variant="ghost"
-    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    className="p-0"
-  >
-    {text}
-    <ArrowUpDown />
-  </Button>
-}
+  const router = useRouter(), params = useSearchParams();
+  return <Button variant="ghost" className="p-0" onClick={() => {
+    const query = new URLSearchParams(params.toString());
+    query.set('direction', params.get('sort') === column.id && params.get('direction') !== 'asc' ? 'asc' : 'desc');
+    query.set('sort', column.id); query.set('page', '1');
+    router.replace(`?${query}`, { scroll: false });
+  }}>{text}<ArrowUpDown /></Button>;
+};
 
 const GoalValue = ({ value, goal }: { value: number, goal: number }) => {
   const isReached = value >= goal
@@ -96,7 +93,7 @@ const ReportTable = memo(function ReportTable({ data, testGoal, scoreGoal }: Rep
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    manualSorting: true,
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,

@@ -14,7 +14,8 @@
     "test:integration": "node tests/integration.cjs",
     "test:migration": "node tests/migration.cjs",
     "db:repair": "node scripts/database.cjs",
-    "accounts:local": "node scripts/accounts.cjs --local"
+    "accounts:local": "node scripts/accounts.cjs --local",
+    "test:v3": "node tests/v3.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -37,7 +38,6 @@
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-table": "^8.21.3",
     "@types/react-table": "^7.7.20",
-    "bcrypt": "6.0.0",
     "bson": "^6.10.1",
     "class-variance-authority": "^0.7.1",
     "clipboardy": "^4.0.0",
@@ -69,7 +69,6 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.17.10",
     "@types/react": "^19",
     "@types/react-dom": "^19",

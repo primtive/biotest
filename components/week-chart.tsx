@@ -1,7 +1,7 @@
 "use client"
 
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, LineChart, Tooltip, XAxis, YAxis } from "recharts"
-import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import moment from "moment"
 import 'moment/locale/ru'
 
@@ -25,10 +25,11 @@ export function WeekChart({ data }: { data: any }) {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="weekDate"
-          interval={1}
+          interval="preserveStartEnd"
+          minTickGap={32}
         // tickFormatter={(date) => moment(date).format('DD MMM')}
         />
-        <YAxis />
+        <YAxis allowDecimals={false} />
         <ChartTooltip content={<ChartTooltipContent />} />
         {/* <ChartLegend content={<ChartLegendContent />} /> */}
         <Area

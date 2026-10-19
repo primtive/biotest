@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { PasswordInput } from '@/components/password-input';
 import { errorMessage } from '@/lib/client-request';
 
 export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?: string, onSave: (values: any) => Promise<void>, el: React.ReactNode, className?: string }) => {
@@ -15,7 +14,6 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
   const [topicGroupId, setTopicGroupId] = React.useState('');
   const [isArchive, setIsArchive] = React.useState(false);
   const [group, setGroup] = React.useState('');
-  const [password, setPassword] = React.useState('');
   const [open, setOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -28,7 +26,6 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
     setTopicGroupId(data?.topicGroupId ?? '');
     setIsArchive(Boolean(data?.isArchive));
     setGroup(data?.group ?? '');
-    setPassword('');
     setError('');
   }, [open, id, data?.name, data?.username, data?.topicGroupId, data?.isArchive, data?.group]);
 
@@ -38,9 +35,8 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
     setPending(true);
     setError('');
     try {
-      await onSave({ name: name.trim(), username: username.trim(), id, topicGroupId, isArchive, group: group.trim(), ...(password ? { password } : {}) });
+      await onSave({ name: name.trim(), username: username.trim(), id, topicGroupId, isArchive, group: group.trim() });
       setOpen(false);
-      setPassword('');
     } catch (error) {
       setError(errorMessage(error));
     } finally {
@@ -58,7 +54,6 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
       <form onSubmit={save} className="space-y-3">
         <div className="space-y-1"><Label htmlFor={`${prefix}-name`}>Имя</Label><Input id={`${prefix}-name`} required disabled={pending} value={name} onChange={event => setName(event.target.value)} /></div>
         <div className="space-y-1"><Label htmlFor={`${prefix}-username`}>Имя пользователя</Label><Input id={`${prefix}-username`} required disabled={pending} value={username} onChange={event => setUsername(event.target.value)} /></div>
-        <div className="space-y-1"><Label htmlFor={`${prefix}-password`}>{id ? 'Новый пароль (оставьте пустым, чтобы сохранить текущий)' : 'Пароль'}</Label><PasswordInput id={`${prefix}-password`} autoComplete="new-password" required={!id} minLength={8} disabled={pending} value={password} onChange={event => setPassword(event.target.value)} /></div>
         <div className="flex gap-2">
           <div className="w-full space-y-1"><Label htmlFor={`${prefix}-group`}>Группа</Label><Input id={`${prefix}-group`} disabled={pending} value={group} onChange={event => setGroup(event.target.value)} /></div>
           <div className="w-full space-y-1"><Label>Группа заданий</Label><Select required disabled={pending} value={topicGroupId} onValueChange={setTopicGroupId}>

@@ -6,10 +6,6 @@ import { requireAdmin, requireUser, HttpError, secretUserIds } from '@/lib/serve
 import { uniqueAnswers } from '@/lib/grading';
 import type { Prisma } from '@prisma/client';
 
-export async function getUsers() {
-  await requireAdmin();
-  return prisma.user.findMany({ select: { id: true, name: true, username: true, admin: true, createdAt: true, group: true, isArchive: true, topicGroupId: true, topicGroup: true, testsCount: true, score: true, percent: true }, orderBy: [{ isArchive: 'asc' }, { admin: 'desc' }, { id: 'asc' }] });
-}
 export async function getUserLastTest(userId: string) {
   const user = await requireUser(); if (user.id !== userId && !user.admin) throw new HttpError(403, 'Недостаточно прав');
   return prisma.test.findFirst({ where: { userId }, select: { id: true, isComplete: true }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }] });

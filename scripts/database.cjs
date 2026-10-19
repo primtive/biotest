@@ -28,7 +28,8 @@ const {uniqueAnswers}=require('../lib/grading.ts');
  }
  await db.collection('Topic').updateMany({section:{$exists:false}},{$set:{section:''}});
  for(const index of await db.collection('User').indexes())if(index.unique&&Object.keys(index.key).length===1&&index.key.name)await db.collection('User').dropIndex(index.name);
- for(const [collection,key,options]of [['User',{username:1},{unique:true}],['User',{topicGroupId:1,admin:1,isArchive:1,score:-1,_id:1},{}],['Test',{userId:1,createdAt:-1},{}],['Test',{userId:1,isComplete:1,completedAt:-1},{}],['Test',{topicGroupId:1,completedAt:1},{}],['Test',{tasksIds:1},{}],['Task',{topicId:1,active:1,isReported:1},{}],['Topic',{topicGroupId:1,active:1},{}],['UserTopicProgress',{userId:1,topicId:1},{unique:true}],['LoginThrottle',{expiresAt:1},{expireAfterSeconds:0}]])await db.collection(collection).createIndex(key,options);
- console.log(JSON.stringify({...summary,backup,manualAdjustmentsPreserved:true,historicalCorrectnessRegraded:false},null,2));
+ for(const [collection,key,options]of [['User',{username:1},{unique:true}],['User',{topicGroupId:1,admin:1,isArchive:1,score:-1,_id:1},{}],['Test',{userId:1,createdAt:-1},{}],['Test',{userId:1,isComplete:1,completedAt:-1},{}],['Test',{topicGroupId:1,completedAt:1},{}],['Test',{tasksIds:1},{}],['Task',{topicId:1,active:1,isReported:1},{}],['Topic',{topicGroupId:1,active:1},{}],['UserTopicProgress',{userId:1,topicId:1},{unique:true}]])await db.collection(collection).createIndex(key,options);
+ const v3=await require('./migrate-v3.cjs').migrate(db);
+ console.log(JSON.stringify({...summary,backup,manualAdjustmentsPreserved:true,historicalCorrectnessRegraded:false,v3},null,2));
  }finally{await client.close();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

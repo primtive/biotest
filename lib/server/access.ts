@@ -9,7 +9,6 @@ export class HttpError extends Error {
 }
 export const idSchema = z.string().regex(/^[a-f\d]{24}$/i, "Некорректный идентификатор").transform(value => value.toLowerCase());
 export const parseId = (value: unknown) => idSchema.parse(value);
-export const passwordSchema = z.string().min(8, "Пароль должен содержать минимум 8 символов").refine(value => Buffer.byteLength(value, "utf8") <= 72, "Пароль должен занимать не более 72 байт UTF-8");
 export const getCurrentUser = cache(async (): Promise<SafeUser | null> => (await getServerSession(authOptions))?.user ?? null);
 export async function requireUser() {
   const user = await getCurrentUser();

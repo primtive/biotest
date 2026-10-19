@@ -1,53 +1,48 @@
 "use client"
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
+  FormMessage
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { signIn } from "next-auth/react";
+import { errorMessage } from '@/lib/client-request'
+import { zodResolver } from "@hookform/resolvers/zod"
+import { signIn } from "next-auth/react"
 import * as React from "react"
-import { PasswordInput } from "@/components/password-input"
-import { errorMessage } from '@/lib/client-request';
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 
 const formSchema = z.object({
   username: z
     .string({ message: 'Введите имя пользователя' }).trim().min(1, 'Введите имя пользователя'),
-  password: z.string().min(1, 'Введите пароль'),
 })
 
 export default function LoginForm() {
   const [loading, setLoading] = React.useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { username: '', password: '' },
+    defaultValues: { username: '' },
   })
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
       const res = await signIn("credentials", {
-        callbackUrl: '/', redirect: false, username: values.username, password: values.password,
+        callbackUrl: '/', redirect: false, username: values.username,
       });
       if (!res?.ok || res.error) {
-        form.setError('root', { message: 'Неверное имя пользователя или пароль' });
+        form.setError('root', { message: 'Пользователь не найден или находится в архиве' });
       } else {
         window.location.href = res.url || '/';
       }
@@ -81,13 +76,6 @@ export default function LoginForm() {
                 </FormItem>
               )}
             />
-            <FormField control={form.control} name="password" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Пароль</FormLabel>
-                <FormControl><PasswordInput autoComplete="current-password" disabled={loading} {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
             {form.formState.errors.root && <p role="alert" className="text-sm text-destructive">{form.formState.errors.root.message}</p>}
             <Button type="submit" disabled={loading} className="w-full">Вход</Button>
           </form>

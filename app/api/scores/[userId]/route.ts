@@ -20,6 +20,6 @@ export async function POST(request: Request, props: { params: Promise<{ userId: 
         await db.collection('User').updateOne({ _id: user._id }, { $inc: { score: body.score }, $push: { scores: { score: body.score, createdAt, testId: '' } } } as any, { session });
       });
     } finally { await session.endSession(); }
-    invalidateStatistics(userId); return Response.json({ ok: true });
+    await invalidateStatistics(userId); return Response.json({ ok: true });
   } catch (error) { return apiError(error); }
 }

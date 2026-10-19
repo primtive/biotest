@@ -1,32 +1,37 @@
 "use client";
-import { useQueryClient } from '@tanstack/react-query';
-import { requestJson } from '@/lib/client-request';
 import { ConfirmDelete } from '@/components/confirm-delete';
+import { requestJson } from '@/lib/client-request';
+import { useQueryClient } from '@tanstack/react-query';
 
+import { MultiSelect } from '@/components/multi-select';
+import { PaginationControls } from '@/components/pagination-controls';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertCircle, ArrowLeft, ArrowRight, Check, Pencil, Trash2, X } from 'lucide-react';
-import React, { useEffect, useState, useMemo } from 'react';
 import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
   ColumnDef,
   flexRender,
+  getCoreRowModel,
+  useReactTable
 } from '@tanstack/react-table';
+import { AlertCircle, Check, Pencil, Trash2, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { TaskEdit } from './task-edit';
-import { MultiSelect } from '@/components/multi-select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useTasks } from './use-tasks';
 import { useTaskFilters } from './use-filters';
-import { Input } from '@/components/ui/input';
+import { useTasks } from './use-tasks';
 
 export const TasksTable = ({ initData }: { initData: { sources: any, topics: any } }) => {
-  const { data, isPending, error } = useTasks();
+  const { data, isPending, isFetching, error } = useTasks();
   const queryClient = useQueryClient();
-  const [pageIndex, setPageIndex] = useState(0);
   const { filters, setFilter } = useTaskFilters();
+  const [line, setLine] = useState(filters.line);
+  useEffect(() => setLine(filters.line), [filters.line]);
+  useEffect(() => {
+    if (line === filters.line) return;
+    const timer = setTimeout(() => setFilter('line', line), 350);
+    return () => clearTimeout(timer);
+  }, [line, filters.line, setFilter]);
 
   const saveTask = React.useCallback(async (values: any) => {
     await requestJson(`/api/tasks/${values.id || 'new'}`, { method: 'POST', body: JSON.stringify(values) });
@@ -97,7 +102,7 @@ export const TasksTable = ({ initData }: { initData: { sources: any, topics: any
     data: data?.items ?? [],
     getRowId: row => row.id,
     columns,
-    pageCount: Math.ceil((data?.total ?? 0) / 20),
+    pageCount: data?.totalPages || 1,
     manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -130,8 +135,8 @@ export const TasksTable = ({ initData }: { initData: { sources: any, topics: any
       </div>
       <Input
         type="text"
-        value={filters.line}
-        onChange={(e) => setFilter('line', e.target.value)}
+        value={line}
+        onChange={(e) => setLine(e.target.value)}
         placeholder="Линия задания"
         className="w-full"
       />
@@ -174,27 +179,8 @@ export const TasksTable = ({ initData }: { initData: { sources: any, topics: any
         </TableBody>
       </Table>
 
-      <div className='flex items-center gap-3'>
-        <Button
-          onClick={() => setFilter('page', Math.max(filters.page - 1, 1))}
-          disabled={filters.page <= 1}
-          className='h-min p-2'
-        >
-          <ArrowLeft />
-        </Button>
-        <span>
-          Страница{' '}
-          <strong>
-            {filters.page} из {data?.totalPages}
-          </strong>{' '}
-        </span>
-        <Button
-          onClick={() => setFilter('page', Math.min(filters.page + 1, data?.totalPages))}
-          disabled={filters.page >= data?.totalPages}
-          className='h-min p-2'
-        >
-          <ArrowRight />
-        </Button>
+      <PaginationControls page={data?.page || filters.page} pageSize={data?.pageSize || 20} total={data?.total || 0} totalPages={data?.totalPages || 1} loading={isFetching} />
+      <div>
         <TaskEdit
           topics={initData.topics}
           el={<Button>Создать</Button>}

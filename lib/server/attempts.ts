@@ -37,10 +37,11 @@ export async function createAttempt(user: SafeUser, topicIds?: string[]) {
   const session = (await getMongoClient()).startSession();
   try {
     await session.withTransaction(async () => {
-      await db.collection('Test').insertOne({ _id: id, userId: new ObjectId(user.id), topicGroupId: groupId, createdAt: new Date(), completedAt: null, isComplete: false, tasksIds: tasks.map(t => t._id), answers: [], snapshots, snapshotSource: 'recorded' }, { session });
+      await db.collection('Test').insertOne({ _id: id, userId: new ObjectId(user.id), topicGroupId: groupId, createdAt: new Date(), completedAt: null, isComplete: false, tasksIds: tasks.map(t => t._id), answers: [], taskCount: tasks.length, answeredCount: 0, correctCount: 0, snapshots, snapshotSource: 'recorded' }, { session });
       await db.collection('Task').updateMany({ _id: { $in: tasks.map(t => t._id) } }, { $addToSet: { testIDs: id } } as Document, { session });
     });
   } finally { await session.endSession(); }
+  await invalidateStatistics(user.id);
   return String(id);
 }
 
@@ -97,7 +98,7 @@ export async function submitAnswer(user: SafeUser, testId: string, taskId: strin
       const snapshot = (await attemptSnapshots(test, db, session)).find((t: Document) => String(t.taskId) === taskId);
       if (!snapshot || snapshot.missing) throw new HttpError(409, 'Задание недоступно');
       correct = checkAnswer(snapshot.answer, answer, snapshot.disordered);
-      const updated = await db.collection('Test').updateOne({ _id: tid, userId: new ObjectId(user.id), isComplete: false, tasksIds: qid, answers: { $not: { $elemMatch: { taskId: qid } } } }, { $push: { answers: { taskId: qid, answer, correct } } } as Document, { session });
+      const updated = await db.collection('Test').updateOne({ _id: tid, userId: new ObjectId(user.id), isComplete: false, tasksIds: qid, answers: { $not: { $elemMatch: { taskId: qid } } } }, { $push: { answers: { taskId: qid, answer, correct } }, $set: { taskCount: test.tasksIds.length, answeredCount: uniqueAnswers(test.tasksIds, test.answers || []).length + 1, correctCount: uniqueAnswers(test.tasksIds, test.answers || []).filter(a => a.correct).length + (correct ? 1 : 0) } } as Document, { session });
       if (!updated.modifiedCount) throw new HttpError(409, 'Ответ уже принят или тест завершён');
     });
     return correct;
@@ -135,7 +136,7 @@ export async function completeAttempt(user: SafeUser, testId: string) {
       const answers = uniqueAnswers(test.tasksIds || [], test.answers || []);
       if (!test.tasksIds?.length || answers.length !== test.tasksIds.length) throw new HttpError(422, 'Ответьте на все задания перед завершением');
       const now = new Date(); const score = answers.filter(a => a.correct).length;
-      await db.collection('Test').updateOne({ _id: tid, isComplete: false }, { $set: { isComplete: true, completedAt: now, answers } }, { session });
+      await db.collection('Test').updateOne({ _id: tid, isComplete: false }, { $set: { isComplete: true, completedAt: now, answers, taskCount: test.tasksIds.length, answeredCount: answers.length, correctCount: score } }, { session });
       const recent = await db.collection('Test').find({ userId: uid, isComplete: true }, { session, projection: { tasksIds: 1, answers: 1 } }).sort({ completedAt: -1, _id: -1 }).limit(10).toArray();
       const lastAnswers = recent.flatMap(t => uniqueAnswers(t.tasksIds || [], t.answers || []));
       const percent = lastAnswers.length ? Math.round(lastAnswers.filter(a => a.correct).length / lastAnswers.length * 100) : 0;
@@ -144,7 +145,7 @@ export async function completeAttempt(user: SafeUser, testId: string) {
       const snapshots = await attemptSnapshots(test, db, session);
       const topicIds = [...new Map(snapshots.filter((s: Document) => !s.missing).map((s: Document) => [String(s.topicId), s.topicId as ObjectId])).values()] as ObjectId[];
       await updateProgress(db, session, uid, topicIds, answers);
-      await session.commitTransaction(); invalidateStatistics(user.id); return { alreadyComplete: false, score };
+      await session.commitTransaction(); await invalidateStatistics(user.id); return { alreadyComplete: false, score };
     } catch (error) {
       if (session.inTransaction()) await session.abortTransaction();
       if (error && typeof error === 'object' && 'hasErrorLabel' in error && typeof error.hasErrorLabel === 'function' && error.hasErrorLabel('TransientTransactionError') && attempt < 3) continue;

@@ -1,4 +1,8 @@
-import type { StatisticsRange } from '@/data/statistics-utils';
-export function StatisticsFilter({ range, admin = false, topicGroup = 'all' }: { range: StatisticsRange; admin?: boolean; topicGroup?: string }) {
-  return <form method="get" className="flex flex-wrap items-end gap-3"><label>С <input className="block border rounded p-2 bg-background" type="date" name="from" defaultValue={range.from} required /></label><label>По <input className="block border rounded p-2 bg-background" type="date" name="to" defaultValue={range.to} required /></label>{admin && <label>Группа<select className="block border rounded p-2 bg-background" name="topicGroup" defaultValue={topicGroup}><option value="all">ОГЭ / ЕГЭ</option><option value="oge">ОГЭ</option><option value="ege">ЕГЭ</option></select></label>}<button className="border rounded p-2" type="submit">Показать</button><p className="text-sm text-muted-foreground">Даты: Москва</p></form>;
+import { Button } from '@/components/ui/button';
+export function StatisticsFilter({ period, years, admin = false, topicGroup = 'all' }: { period: string; years: string[]; admin?: boolean; topicGroup?: string }) {
+  return <form method="get" className="flex flex-wrap items-center gap-3 rounded-lg bg-muted/40 p-3">
+    <label className="flex items-center gap-2 text-sm font-medium">Период<select className="h-10 rounded-md border bg-background px-3 font-normal" name="period" defaultValue={period}><option value="all">Вся история</option>{years.map(year => <option key={year} value={year}>{year}–{Number(year) + 1}</option>)}</select></label>
+    {admin && <label className="flex items-center gap-2 text-sm font-medium">Группа<select className="h-10 rounded-md border bg-background px-3 font-normal" name="topicGroup" defaultValue={topicGroup}><option value="all">ОГЭ / ЕГЭ</option><option value="oge">ОГЭ</option><option value="ege">ЕГЭ</option></select></label>}
+    <Button variant="secondary" type="submit">Показать</Button><span className="text-xs text-muted-foreground">Учебный год — с 1 августа</span>
+  </form>;
 }

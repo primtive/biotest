@@ -22,7 +22,6 @@ model User {
   username      String              @unique
   name          String
   admin         Boolean             @default(false)
-  password      String?
   group         String              @default("")
   scores        score[]
   score         Float               @default(0)
@@ -47,6 +46,9 @@ model Test {
   userId       String     @db.ObjectId
   topicGroup   TopicGroup @relation(fields: [topicGroupId], references: [id])
   topicGroupId String     @db.ObjectId
+  taskCount    Int?
+  answeredCount Int?
+  correctCount Int?
   snapshots    TaskSnapshot[]
   snapshotSource String @default("recorded")
 
@@ -132,4 +134,22 @@ type TaskSnapshot {
   source String
   disordered Boolean
   missing Boolean @default(false)
+}
+
+// Materialized statistics. MongoDB collection keys encode scope, group and academic year.
+model StatisticsCache {
+  id String @id @map("_id")
+  period String
+  userId String?
+  topicGroupId String?
+  revision Int
+  updatedAt DateTime
+  data Json
+  @@index([updatedAt])
+}
+
+model StatisticsRevision {
+  id String @id @map("_id")
+  revision Int
+  updatedAt DateTime
 }

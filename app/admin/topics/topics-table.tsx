@@ -1,50 +1,34 @@
 "use client";
-import { requestJson } from '@/lib/client-request';
 import { ConfirmDelete } from '@/components/confirm-delete';
+import { requestJson } from '@/lib/client-request';
 
-import React, { ReactNode, useMemo, useState } from "react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  ColumnDef,
-  flexRender,
-} from "@tanstack/react-table";
-import { Check, CheckCircle, Lock, NotepadText, Pencil, PercentCircle, Trash, Trash2, X } from "lucide-react";
+import { ListFilter } from "@/components/list-filter";
+import { PaginationControls, type PaginationProps } from "@/components/pagination-controls";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableFooter,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog"
-import { TopicEdit } from "./topic-edit";
+  TableRow
+} from "@/components/ui/table";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable
+} from "@tanstack/react-table";
+import { Check, Pencil, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import React, { useMemo, useState } from "react";
+import { TopicEdit } from "./topic-edit";
 
-const GlobalFilter = ({ globalFilter, setGlobalFilter }: { globalFilter: string, setGlobalFilter: (value: string) => void }) => {
-  return (
-    <Input
-      type="text"
-      value={globalFilter || ""}
-      onChange={(e) => setGlobalFilter(e.target.value)}
-      placeholder="Название темы"
-      style={{ marginBottom: "10px", padding: "8px", width: "100%", background: "var(--background)" }}
-    />
-  );
-};
-
-const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
-  const [globalFilter, setGlobalFilter] = useState("");
+const TopicsTable = ({ initTopics, pagination, query }: { initTopics: Array<any>; pagination: PaginationProps; query: string }) => {
   const [topics, setTopics] = useState<Array<any>>(initTopics);
   const router = useRouter();
 
@@ -113,17 +97,13 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
     data: topics,
     getRowId: row => row.id,
     columns,
-    state: {
-      globalFilter,
-    },
-    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    manualFiltering: true,
   });
 
   return (
-    <Card className="max-w-[800px] mx-auto">
-      <GlobalFilter globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
+    <Card className="min-w-0 space-y-4">
+      <h1 className="text-xl font-semibold">Темы</h1><ListFilter pageSize={pagination.pageSize} fields={[{ name: "q", label: "Название темы", value: query }]} />
       <TooltipProvider>
         <Table>
           <TableHeader>
@@ -177,6 +157,7 @@ const TopicsTable = ({ initTopics }: { initTopics: Array<any> }) => {
           </TableFooter>
         </Table>
       </TooltipProvider>
+      <PaginationControls {...pagination} />
     </Card>
   );
 };

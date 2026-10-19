@@ -9,7 +9,7 @@ export const metadata = {
 
 export default async function TasksPage() {
   await requireAdmin();
-  const topics = await prisma.topic.findMany()
+  const topics = await prisma.topic.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } })
   const uniqueSources = await prisma.task.findMany({
     distinct: ['source'],
     select: { source: true },

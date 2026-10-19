@@ -15,10 +15,10 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const data = { ...fields, html: sanitizeContent(fields.html), explanation: sanitizeContent(fields.explanation) };
     if (!data.html.trim()) throw new HttpError(400, 'Условие задания пусто после очистки HTML');
     const task = id ? await editTask(id, data) : await prisma.task.create({ data });
-    invalidateStatistics(); return Response.json({ ok: true, id: task.id });
+    await invalidateStatistics(); return Response.json({ ok: true, id: task.id });
   } catch (error) { return apiError(error); }
 }
 export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
-  try { await getApiUser(request, true); await prisma.task.update({ where: { id: parseId((await props.params).id) }, data: { active: false } }); invalidateStatistics(); return Response.json({ ok: true }); }
+  try { await getApiUser(request, true); await prisma.task.update({ where: { id: parseId((await props.params).id) }, data: { active: false } }); await invalidateStatistics(); return Response.json({ ok: true }); }
   catch (error) { return apiError(error); }
 }

@@ -12,10 +12,10 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (!await prisma.topicGroup.findUnique({ where: { id: body.topicGroupId }, select: { id: true } })) throw new HttpError(400, 'Группа не найдена');
     const { id: _id, ...data } = body;
     const topic = id ? await editTopic(id, data) : await prisma.topic.create({ data });
-    invalidateStatistics(); return Response.json({ ok: true, id: topic.id });
+    await invalidateStatistics(); return Response.json({ ok: true, id: topic.id });
   } catch (error) { return apiError(error); }
 }
 export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
-  try { await getApiUser(request, true); await prisma.topic.update({ where: { id: parseId((await props.params).id) }, data: { active: false } }); invalidateStatistics(); return Response.json({ ok: true }); }
+  try { await getApiUser(request, true); await prisma.topic.update({ where: { id: parseId((await props.params).id) }, data: { active: false } }); await invalidateStatistics(); return Response.json({ ok: true }); }
   catch (error) { return apiError(error); }
 }

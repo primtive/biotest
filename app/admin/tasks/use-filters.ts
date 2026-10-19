@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export function useTaskFilters() {
@@ -13,7 +14,7 @@ export function useTaskFilters() {
     line: params.get('line') ?? '',
   };
 
-  const setFilter = (key: string, value: string | string[] | number | undefined) => {
+  const setFilter = useCallback((key: string, value: string | string[] | number | undefined) => {
     const newParams = new URLSearchParams(params.toString());
 
     if (Array.isArray(value)) {
@@ -29,7 +30,7 @@ export function useTaskFilters() {
     if (key !== 'page') newParams.set('page', '1');
 
     router.replace(`?${newParams.toString()}`);
-  };
+  }, [params, router]);
 
   return { filters, setFilter };
 }
