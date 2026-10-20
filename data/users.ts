@@ -46,10 +46,11 @@ export async function updateAllTopicProgress(userId: string, client: Prisma.Tran
 export async function updateTopicProgress(userId: string, _topicId: string, client: Prisma.TransactionClient = prisma) { return updateAllTopicProgress(userId, client); }
 export async function getUserTopicPercentages(userId: string) {
   const user = await requireUser(); if (user.id !== userId && !user.admin) throw new HttpError(403, 'Недостаточно прав');
-  const [records, tasks] = await Promise.all([
+  const [records, topics] = await Promise.all([
     prisma.userTopicProgress.findMany({ where: { userId }, select: { topicId: true, correctTaskIds: true } }),
-    prisma.task.findMany({ where: { active: true, isReported: false, topic: { active: true, topicGroupId: user.topicGroupId } }, select: { id: true, topicId: true } }),
+    prisma.topic.findMany({ where: { active: true, topicGroupId: user.topicGroupId }, select: { id: true } }),
   ]);
+  const tasks = await prisma.task.findMany({ where: { active: true, isReported: false, topicId: { in: topics.map(topic => topic.id) } }, select: { id: true, topicId: true } });
   const result: Record<string, number> = {};
   for (const record of records) { const eligible = tasks.filter(t => t.topicId === record.topicId); const correct = new Set(record.correctTaskIds); result[record.topicId] = eligible.length ? Math.round(eligible.filter(t => correct.has(t.id)).length / eligible.length * 100) : 0; }
   return result;
