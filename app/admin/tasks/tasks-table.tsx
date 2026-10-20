@@ -18,6 +18,7 @@ import {
 import { AlertCircle, Check, Pencil, Trash2, X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { TaskEdit } from './task-edit';
+import { TaskPreview } from './task-preview';
 import { useTaskFilters } from './use-filters';
 import { useTasks } from './use-tasks';
 
@@ -74,6 +75,7 @@ export const TasksTable = ({ initData }: { initData: { sources: any, topics: any
           row.getValue('active') ? <Check /> : <X />
         ),
       },
+      { id: 'preview', header: '', cell: ({ row }) => <TaskPreview task={row.original} /> },
       {
         header: '',
         accessorKey: 'id',

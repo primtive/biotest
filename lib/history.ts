@@ -1,7 +1,7 @@
 import { ObjectId, type Db, type Document } from 'mongodb';
 import { parsePagination, pageInfo, type PageQuery } from './pagination';
-import { parseMoscowDate, uniqueAnswersExpression } from '../data/statistics-utils';
-export type HistoryQuery = PageQuery & { from?: string; to?: string; period?: string };
+import { uniqueAnswersExpression } from '../data/statistics-utils';
+export type HistoryQuery = PageQuery;
 export type HistoryRow = { id: string; createdAt: Date; completedAt: Date | null; isComplete: boolean; taskCount: number; correctCount: number; user?: { name: string; username: string }; topicGroup?: string };
 export async function readHistory(db: Db, query: HistoryQuery, userId?: string) {
   const parsed = parsePagination(query);
@@ -9,12 +9,6 @@ export async function readHistory(db: Db, query: HistoryQuery, userId?: string) 
   if (!userId) {
     const archived = await db.collection('User').find({ isArchive: true }, { projection: { _id: 1 } }).toArray();
     if (archived.length) where.userId = { $nin: archived.map(u => u._id) };
-  }
-  if (query.from || query.to) {
-    const start = query.from ? parseMoscowDate(query.from) : undefined;
-    const end = query.to ? new Date(parseMoscowDate(query.to).valueOf() + 86400000) : undefined;
-    if (start && end && start >= end) throw new RangeError('Начало периода должно быть не позже окончания');
-    where.createdAt = { ...(start ? { $gte: start } : {}), ...(end ? { $lt: end } : {}) };
   }
   const total = await db.collection('Test').countDocuments(where);
   const pagination = pageInfo(total, parsed.page, parsed.pageSize);

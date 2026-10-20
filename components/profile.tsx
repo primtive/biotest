@@ -22,7 +22,7 @@ export const Profile = () => {
           <div className='flex items-center justify-between'>
             <div>
               <p>{session.user?.name}</p>
-              {session.user?.admin && <Badge className='px-1' variant={'secondary'}>админ</Badge>}
+              <div className='flex flex-wrap gap-1'><Badge variant='secondary'>{session.user.username}</Badge>{session.user.admin && <Badge className='px-1' variant='secondary'>админ</Badge>}</div>
             </div>
             <div className='flex gap-4'>
               <Tooltip>

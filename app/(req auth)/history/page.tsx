@@ -5,6 +5,6 @@ import { HistoryTable } from '@/components/history-table';
 export const metadata = { title: 'История тестов' };
 export default async function MyHistory({ searchParams }: { searchParams: Promise<HistoryQuery> }) {
   const user = await requireUser(), query = await searchParams;
-  try { const history = await readHistory(await getMongoDb(), query, user.id); return <HistoryTable {...history} query={query} />; }
+  try { const history = await readHistory(await getMongoDb(), query, user.id); return <HistoryTable {...history} />; }
   catch (error) { if (error instanceof RangeError) return <p role="alert">{error.message}</p>; throw error; }
 }

@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import { ObjectId } from 'mongodb';
 import { requireUser } from '@/lib/server/access';
 import { getMongoDb } from '@/data/mongo';
@@ -16,6 +17,6 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   const tasks = await attemptSnapshots(test, db);
   return <><p>Задания:</p>{test.snapshotSource === 'legacy-import' && <p className="text-sm text-muted-foreground">Для старого теста сохранена версия задания на дату переноса. Оценка оставлена исторической.</p>}{tasks.map((task: any) => {
     const id = String(task.taskId); const answer = (test.answers || []).find((a: any) => String(a.taskId) === id);
-    return <Card key={id}><TaskCard task={{ id, html: sanitizeContent(task.html), topic: task.topicName, line: task.line, source: task.source }} /><div className="mt-3 space-y-2"><p><b>Ответ:</b> {task.answer || 'Задание недоступно'}</p><p><b>Ваш ответ:</b> {answer?.answer || 'Нет ответа'} {answer ? (answer.correct ? '✓' : '✗') : ''}</p>{task.explanation && <div dangerouslySetInnerHTML={{ __html: sanitizeContent(task.explanation) }} />}</div></Card>;
+    return <Card key={id}><TaskCard task={{ id, html: sanitizeContent(task.html), topic: task.topicName, line: task.line, source: task.source }} /><div className="mt-3 space-y-2"><p><b>Ответ:</b> {task.answer || 'Задание недоступно'}</p><div className="flex items-center gap-2"><p><b>Ваш ответ:</b> {answer?.answer || 'Нет ответа'}</p>{answer && (answer.correct ? <CheckCircle2 className="w-5 h-5 text-green-700" aria-label="Правильно" /> : <XCircle className="w-5 h-5 text-red-400" aria-label="Неправильно" />)}</div>{task.explanation && <div dangerouslySetInnerHTML={{ __html: sanitizeContent(task.explanation) }} />}</div></Card>;
   })}<Link href="/">На главную</Link></>;
 }

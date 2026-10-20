@@ -48,10 +48,10 @@ url.pathname = '/biotest_v3_test_' + crypto.randomBytes(8).toString('hex');
     const second = await readHistory(db, { page: '2', pageSize: '10' });
     assert.equal(first.pagination.total, 24); assert.equal(first.items.length, 10); assert.equal(second.items.length, 10);
     assert.equal(first.items.some(a => second.items.some(b => a.id === b.id)), false);
-    const filtered = await readHistory(db, { from: '2026-08-01', to: '2026-08-01' }, String(user)); assert.equal(filtered.pagination.total, 1);
+    const filtered = await readHistory(db, { from: '2026-08-01', to: '2026-08-01' }, String(user)); assert.equal(filtered.pagination.total, 24, 'Legacy date parameters must not hide history');
     assert.ok(first.items.every(row => !('answers' in row) && !('snapshots' in row)));
     assert.ok(Buffer.byteLength(JSON.stringify(first)) < 10000);
     await assert.rejects(() => readHistory(db, { pageSize: '10000' }));
-    console.log('PASS bounded history pages, no overlapping rows, archived-user exclusion, Moscow dates and compact payload');
+    console.log('PASS bounded history pages, no overlapping rows, archived-user exclusion, unfiltered history and compact payload');
   } finally { await db.dropDatabase(); await c.close(); console.log('Disposable V3 fixture database removed'); }
 })().catch(e => { console.error(e.stack); process.exitCode = 1; });

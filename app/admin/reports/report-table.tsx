@@ -10,10 +10,10 @@ import {
 import { UserBadge } from "@/components/user-badge";
 import topicGroups from "@/data/topicGroups";
 import { cn } from "@/lib/utils";
-import { ColumnDef, ColumnFiltersState, flexRender, getCoreRowModel, getFilteredRowModel, SortingState, useReactTable } from "@tanstack/react-table";
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { ArrowUpDown, CircleCheck, CircleX } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
-import { memo, useState } from 'react';
+import { memo } from 'react';
 
 
 
@@ -22,7 +22,7 @@ export type UserReport = {
   username: string,
   testCount: number,
   score: number,
-  topicGroup: string,
+  topicGroupId: string | { $oid: string },
 }
 
 type ReportTableProps = {
@@ -68,7 +68,7 @@ const ReportTable = memo(function ReportTable({ data, testGoal, scoreGoal }: Rep
     {
       accessorKey: "topicGroupId",
       header: "Группа",
-      cell: ({ row }) => topicGroups.find(t => t.topicGroupId == (row.getValue("topicGroupId") as any).$oid)?.name
+      cell: ({ row }) => { const group = row.original.topicGroupId; return topicGroups.find(t => t.topicGroupId === (typeof group === "string" ? group : group?.$oid))?.name || "—"; }
     },
     {
       accessorKey: "testCount",
@@ -82,24 +82,7 @@ const ReportTable = memo(function ReportTable({ data, testGoal, scoreGoal }: Rep
     }
   ]
 
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
-
-  const table = useReactTable({
-    data,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    manualSorting: true,
-    getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      sorting,
-      columnFilters
-    },
-  })
+  const table = useReactTable({ data, columns, getRowId: row => row.username, getCoreRowModel: getCoreRowModel(), manualSorting: true });
 
   return (
     <Table>
@@ -122,6 +105,7 @@ const ReportTable = memo(function ReportTable({ data, testGoal, scoreGoal }: Rep
         ))}
       </TableHeader>
       <TableBody>
+        {!data.length && <TableRow><TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">Пользователи не найдены</TableCell></TableRow>}
         {
           table.getRowModel().rows.map((row) => (
             <TableRow

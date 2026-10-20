@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Card } from './ui/card';
+import { Badge } from './ui/badge';
 import moment from 'moment';
 import { CheckCircle, NotepadText, PercentCircle } from 'lucide-react';
 import 'moment/locale/ru'
@@ -12,7 +13,7 @@ export const UserCard = ({user}: {user: any}) => {
           <div className='flex justify-between space-x-10'>
             <div>
               <h1 className='font-bold text-2xl'>{user.name}</h1>
-              <h1 className='text-lg mb-3'>{user.username}</h1>
+              <Badge className="mb-3" variant="secondary">{user.username}</Badge>
               <h1 className='text-base'>Создан {moment(user.createdAt).format('LLL')}</h1>
               <h1 className='text-base'>Группа: {user.topicGroup.name}</h1>
             </div>
