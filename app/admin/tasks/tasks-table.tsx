@@ -15,10 +15,11 @@ import {
   getCoreRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { AlertCircle, Check, Pencil, Trash2, X } from 'lucide-react';
+import { Check, Pencil, Trash2, X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { TaskEdit } from './task-edit';
 import { TaskPreview } from './task-preview';
+import { TaskReporters } from './task-reporters';
 import { useTaskFilters } from './use-filters';
 import { useTasks } from './use-tasks';
 
@@ -63,9 +64,9 @@ export const TasksTable = ({ initData }: { initData: { sources: any, topics: any
       },
       {
         accessorKey: 'isReported',
-        header: '',
+        header: 'Жалобы',
         cell: ({ row }) => (
-          row.getValue('isReported') && <AlertCircle />
+          <TaskReporters isReported={row.original.isReported} reporters={row.original.reporters || []} />
         ),
       },
       {

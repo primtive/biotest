@@ -13,7 +13,10 @@ export async function GET(request: Request) {
     const where = { ...(topics.length ? { topicId: { in: topics } } : {}), ...(sources.length ? { source: { in: sources } } : {}), ...(line ? { line: { contains: line } } : {}) };
     const total = await prisma.task.count({ where });
     const pagination = pageInfo(total, page, pageSize);
-    const items = await prisma.task.findMany({ where, skip: (pagination.page - 1) * pageSize, take: pageSize, orderBy: [{ isReported: 'desc' }, { id: 'asc' }], select: { id: true, topicId: true, topic: { select: { id: true, name: true } }, html: true, answer: true, line: true, source: true, explanation: true, disordered: true, isReported: true, active: true } });
-    return Response.json({ items: items.map(t => ({ ...t, html: sanitizeContent(t.html), explanation: sanitizeContent(t.explanation) })), ...pagination });
+    const items = await prisma.task.findMany({ where, skip: (pagination.page - 1) * pageSize, take: pageSize, orderBy: [{ isReported: 'desc' }, { id: 'asc' }], select: { id: true, topicId: true, topic: { select: { id: true, name: true } }, html: true, answer: true, line: true, source: true, explanation: true, disordered: true, isReported: true, reportedByIds: true, active: true } });
+    const reporterIds = [...new Set(items.flatMap(t => t.reportedByIds))];
+    const reporters = reporterIds.length ? await prisma.user.findMany({ where: { id: { in: reporterIds } }, select: { id: true, username: true, name: true } }) : [];
+    const byId = new Map(reporters.map(user => [user.id, user]));
+    return Response.json({ items: items.map(t => ({ ...t, reporters: t.reportedByIds.map(id => byId.get(id) || { id, username: null, name: 'Пользователь удалён' }), html: sanitizeContent(t.html), explanation: sanitizeContent(t.explanation) })), ...pagination });
   } catch (error) { return apiError(error); }
 }

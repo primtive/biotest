@@ -55,7 +55,7 @@ export default function TaskCard({ task }: { task: { html: string, id: string, t
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Пожаловаться на задание?</AlertDialogTitle>
-                <AlertDialogDescription>Его рассмотрит администратор.</AlertDialogDescription>
+                <AlertDialogDescription>Его рассмотрит администратор. Вместе с жалобой будет сохранён ваш аккаунт.</AlertDialogDescription>
               </AlertDialogHeader>
               {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
               <AlertDialogFooter>

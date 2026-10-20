@@ -47,7 +47,7 @@ export async function createAttempt(user: SafeUser, topicIds?: string[]) {
 
 // Old attempts have no snapshots until the explicit data repair is applied.
 // Freeze the previous revision in the same transaction as an administrative edit.
-export async function editTask(id: string, data: Document) {
+export async function editTask(id: string, data: Document, editorId: string) {
   const db = await getMongoDb(); const qid = new ObjectId(id);
   const session = (await getMongoClient()).startSession();
   try {
@@ -60,7 +60,10 @@ export async function editTask(id: string, data: Document) {
       if (String(task.topicId) !== String(data.topicId)) {
         await db.collection('UserTopicProgress').updateMany({ topicId: { $in: [task.topicId, new ObjectId(data.topicId)] } }, { $unset: { version: '' } }, { session });
       }
-      await db.collection('Task').updateOne({ _id: qid }, { $set: { ...data, topicId: new ObjectId(data.topicId) } }, { session });
+      await db.collection('Task').updateOne({ _id: qid }, {
+        $set: { ...data, topicId: new ObjectId(data.topicId) },
+        ...(data.isReported ? { $addToSet: { reportedByIds: new ObjectId(editorId) } } : {}),
+      } as Document, { session });
     });
   } finally { await session.endSession(); }
   return { id };

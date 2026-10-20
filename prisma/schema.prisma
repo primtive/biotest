@@ -64,6 +64,7 @@ model Task {
   answer      String
   line        String   @default("")
   isReported  Boolean  @default(false)
+  reportedByIds String[] @default([]) @db.ObjectId
   source      String   @default("")
   explanation String   @default("")
   active      Boolean  @default(true)
