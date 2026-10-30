@@ -7,13 +7,16 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { errorMessage } from '@/lib/client-request';
+import { MultiSelect } from '@/components/multi-select';
 
-export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?: string, onSave: (values: any) => Promise<void>, el: React.ReactNode, className?: string }) => {
+export const UserEdit = ({ data, id, onSave, el, className, groups = [] }: { data?: any, id?: string, onSave: (values: any) => Promise<void>, el: React.ReactNode, className?: string, groups?: string[] }) => {
   const [name, setName] = React.useState('');
   const [username, setUsername] = React.useState('');
   const [topicGroupId, setTopicGroupId] = React.useState('');
   const [isArchive, setIsArchive] = React.useState(false);
   const [group, setGroup] = React.useState('');
+  const [teacher, setTeacher] = React.useState(false);
+  const [teacherGroups, setTeacherGroups] = React.useState<string[]>([]);
   const [open, setOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -26,8 +29,10 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
     setTopicGroupId(data?.topicGroupId ?? '');
     setIsArchive(Boolean(data?.isArchive));
     setGroup(data?.group ?? '');
+    setTeacher(Boolean(data?.teacher));
+    setTeacherGroups(data?.teacherGroups ?? []);
     setError('');
-  }, [open, id, data?.name, data?.username, data?.topicGroupId, data?.isArchive, data?.group]);
+  }, [open, id, data?.name, data?.username, data?.topicGroupId, data?.isArchive, data?.group, data?.teacher, data?.teacherGroups]);
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -35,7 +40,7 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
     setPending(true);
     setError('');
     try {
-      await onSave({ name: name.trim(), username: username.trim(), id, topicGroupId, isArchive, group: group.trim() });
+      await onSave({ name: name.trim(), username: username.trim(), id, topicGroupId, isArchive, group: group.trim(), teacher, teacherGroups: teacher ? teacherGroups : [] });
       setOpen(false);
     } catch (error) {
       setError(errorMessage(error));
@@ -46,7 +51,7 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
 
   return <Dialog open={open} onOpenChange={value => { if (!pending) setOpen(value); }}>
     <DialogTrigger asChild><span className={cn(className, 'inline-flex cursor-pointer')} role="button" tabIndex={0}>{el}</span></DialogTrigger>
-    <DialogContent>
+    <DialogContent className="max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>{id ? 'Изменить пользователя' : 'Создать пользователя'}</DialogTitle>
         <DialogDescription>Имя пользователя должно быть уникальным.</DialogDescription>
@@ -54,6 +59,8 @@ export const UserEdit = ({ data, id, onSave, el, className }: { data?: any, id?:
       <form onSubmit={save} className="space-y-3">
         <div className="space-y-1"><Label htmlFor={`${prefix}-name`}>Имя</Label><Input id={`${prefix}-name`} required disabled={pending} value={name} onChange={event => setName(event.target.value)} /></div>
         <div className="space-y-1"><Label htmlFor={`${prefix}-username`}>Имя пользователя</Label><Input id={`${prefix}-username`} required disabled={pending} value={username} onChange={event => setUsername(event.target.value)} /></div>
+        <div className="space-y-1"><Label htmlFor={`${prefix}-role`}>Роль</Label><select id={`${prefix}-role`} disabled={pending || data?.admin} value={data?.admin ? 'admin' : teacher ? 'teacher' : 'student'} onChange={event => setTeacher(event.target.value === 'teacher')} className="block h-10 w-full rounded-md border bg-background px-3"><option value="student">Ученик</option><option value="teacher">Учитель</option>{data?.admin && <option value="admin">Администратор</option>}</select></div>
+        {teacher && <div className="space-y-2"><Label htmlFor={`${prefix}-teacher-groups`}>Закреплённые группы учеников</Label><MultiSelect id={`${prefix}-teacher-groups`} type="button" disabled={pending} options={[...new Set([...groups, ...teacherGroups])].sort().map(value => ({ value, label: value }))} value={teacherGroups} onValueChange={setTeacherGroups} placeholder="Выберите группы учеников" modalPopover /><p className="text-sm text-muted-foreground">Учителю доступны только ученики выбранных групп. Без групп список учеников будет пуст.</p></div>}
         <div className="flex gap-2">
           <div className="w-full space-y-1"><Label htmlFor={`${prefix}-group`}>Группа</Label><Input id={`${prefix}-group`} disabled={pending} value={group} onChange={event => setGroup(event.target.value)} /></div>
           <div className="w-full space-y-1"><Label>Группа заданий</Label><Select required disabled={pending} value={topicGroupId} onValueChange={setTopicGroupId}>

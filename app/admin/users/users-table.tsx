@@ -23,7 +23,7 @@ import {
   Row,
   useReactTable
 } from '@tanstack/react-table';
-import { CheckCircle, Lock, NotepadText, Pencil, PercentCircle, Trash2 } from "lucide-react";
+import { CheckCircle, GraduationCap, Lock, NotepadText, Pencil, PercentCircle, Trash2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from "react";
 import { UserEdit } from "./user-edit";
@@ -34,12 +34,12 @@ function multiSelectFilter(
   return filterValue.includes(String(row.original.group))
 }
 
-const UserTable = (data: { users: Array<User>, groups: string[], pagination: PaginationProps, query: { name?: string; username?: string; group?: string } }) => {
+const UserTable = (data: { users: Array<User>, groups: string[], canManage: boolean, pagination: PaginationProps, query: { name?: string; username?: string; group?: string } }) => {
   const router = useRouter();
   React.useEffect(() => setUsers(data.users), [data.users]);
   const [users, setUsers] = useState<Array<User>>(data.users);
 
-  const onUserSave = React.useCallback(async (values: { id?: string, name: string, username: string, admin: boolean, isArchive: boolean }) => {
+  const onUserSave = React.useCallback(async (values: { id?: string, name: string, username: string, teacher: boolean, teacherGroups: string[], isArchive: boolean }) => {
     const publicValues = values;
     const saved = await requestJson<{id: string}>(`/api/users/${values.id || 'new'}`, {
       method: 'POST', body: JSON.stringify(values),
@@ -116,24 +116,28 @@ const UserTable = (data: { users: Array<User>, groups: string[], pagination: Pag
         accessorKey: "percent"
       },
       {
-        accessorKey: "admin",
-        header: '',
+        id: "role",
+        header: 'Роль',
         cell: ({ row }) => (
-          row.getValue('admin') && <Lock className="text-muted-foreground w-5 h-5" />
+          row.original.admin ? <span className="inline-flex items-center gap-1"><Lock className="w-4 h-4" />Администратор</span> : row.original.teacher ? <span className="inline-flex items-center gap-1"><GraduationCap className="w-4 h-4" />Учитель</span> : 'Ученик'
         ),
       },
-      {
+      ...(data.canManage ? [{
+        id: 'teacherGroups',
+        header: 'Закреплённые группы',
+        cell: ({ row }) => row.original.teacher ? row.original.teacherGroups?.join(', ') || 'Не назначены' : '—',
+      }, {
         accessorKey: "id",
         header: '',
         cell: ({ row }) => (
-          <UserEdit el={<Pencil className="w-5 h-5" />} data={row.original} id={row.getValue('id')} onSave={onUserSave} />
+          <UserEdit el={<Pencil className="w-5 h-5" />} data={row.original} groups={data.groups} id={row.getValue('id')} onSave={onUserSave} />
         ),
       },
       {
         accessorKey: "topicGroupId",
         header: '',
         cell: ({ row }) => (
-          row.getValue('admin')
+          row.original.admin
             ? <Trash2 className="text-muted-foreground w-5 h-5" />
             : (
               <ConfirmDelete title="Архивировать пользователя?" description="История и результаты сохранятся. Пользователь больше не сможет войти." onDelete={() => deleteUser(row.original.id)}>
@@ -141,9 +145,9 @@ const UserTable = (data: { users: Array<User>, groups: string[], pagination: Pag
               </ConfirmDelete>
             )
         ),
-      }
+      }] as ColumnDef<User>[] : [])
     ],
-    [onUserSave, deleteUser]
+    [onUserSave, deleteUser, data.canManage, data.groups]
   );
 
   const table = useReactTable({
@@ -156,7 +160,8 @@ const UserTable = (data: { users: Array<User>, groups: string[], pagination: Pag
 
   return (
     <Card className="space-y-4 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-xl font-semibold">Пользователи</h1><UserEdit el={<Button>Создать пользователя</Button>} data={{}} onSave={onUserSave} /></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-xl font-semibold">{data.canManage ? 'Пользователи' : 'Мои ученики'}</h1>{data.canManage && <UserEdit el={<Button>Создать пользователя</Button>} data={{}} groups={data.groups} onSave={onUserSave} />}</div>
+      {!data.canManage && <p className="text-sm text-muted-foreground">{data.groups.length ? `Закреплённые группы: ${data.groups.join(', ')}` : 'За вами пока не закреплены группы. Обратитесь к администратору.'}</p>}
       <ListFilter pageSize={data.pagination.pageSize} fields={[{ name: 'name', label: 'Имя', value: data.query.name }, { name: 'username', label: 'Логин', value: data.query.username }]}><label className="space-y-1 text-sm"><span>Группа</span><select name="group" defaultValue={data.query.group || ''} className="block h-9 rounded-md border bg-background px-3"><option value="">Все</option>{data.groups.map(g => <option key={g} value={g}>{g}</option>)}</select></label></ListFilter>
 
       <TooltipProvider>

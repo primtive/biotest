@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useSession } from 'next-auth/react';
 import SignOut from './signout';
+import { isTeacher } from '@/lib/permissions';
 
 export const Profile = () => {
   const { data: session } = useSession();
@@ -22,9 +23,9 @@ export const Profile = () => {
           <div className='flex items-center justify-between'>
             <div>
               <p>{session.user?.name}</p>
-              <div className='flex flex-wrap gap-1'><Badge variant='secondary'>{session.user.username}</Badge>{session.user.admin && <Badge className='px-1' variant='secondary'>админ</Badge>}</div>
+              <div className='flex flex-wrap gap-1'><Badge variant='secondary'>{session.user.username}</Badge>{session.user.admin && <Badge className='px-1' variant='secondary'>админ</Badge>}{isTeacher(session.user) && <Badge variant='secondary'>учитель</Badge>}</div>
             </div>
-            <div className='flex gap-4'>
+            {!isTeacher(session.user) && <div className='flex gap-4'>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className='flex gap-1 items-center'>
@@ -47,7 +48,7 @@ export const Profile = () => {
                   <p>Процент правильных заданий за последние 10 тестов</p>
                 </TooltipContent>
               </Tooltip>
-            </div>
+            </div>}
             <SignOut />
           </div>
         </TooltipProvider>

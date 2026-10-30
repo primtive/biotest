@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { z, ZodError } from "zod";
 import authOptions, { type SafeUser } from "@/auth";
+import prisma from '@/data/prisma';
+import { canSupervise, canViewStudent, isTeacher, studentWhere } from '@/lib/permissions';
 export class HttpError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
@@ -20,17 +22,33 @@ export async function requireAdmin() {
   if (!user.admin) redirect("/");
   return user;
 }
+export async function requireStaff() {
+  const user = await requireUser();
+  if (!canSupervise(user)) redirect('/');
+  return user;
+}
+export async function requireStudentAccess(userId: string) {
+  const actor = await requireUser();
+  if (actor.admin || (!isTeacher(actor) && actor.id === userId)) return actor;
+  const student = await prisma.user.findUnique({ where: { id: userId }, select: { admin: true, teacher: true, group: true, isArchive: true } });
+  if (!student || !canViewStudent(actor, student)) throw new HttpError(403, 'Недостаточно прав');
+  return actor;
+}
+export async function supervisedStudentIds(actor: SafeUser) {
+  if (!isTeacher(actor)) return undefined;
+  return (await prisma.user.findMany({ where: studentWhere(actor), select: { id: true } })).map(user => user.id);
+}
 export function checkOrigin(request: Request) {
   if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return;
   const origin = request.headers.get("origin");
   const configured = new URL(process.env.NEXTAUTH_URL || request.url).origin;
   if (request.headers.get("sec-fetch-site") === "cross-site" || (origin && origin !== configured)) throw new HttpError(403, "Запрос с другого сайта запрещён");
 }
-export async function getApiUser(request: Request, adminOnly = false) {
+export async function getApiUser(request: Request, access: boolean | 'staff' = false) {
   checkOrigin(request);
   const user = await getCurrentUser();
   if (!user) throw new HttpError(401, "Войдите в аккаунт");
-  if (adminOnly && !user.admin) throw new HttpError(403, "Недостаточно прав");
+  if ((access === true && !user.admin) || (access === 'staff' && !canSupervise(user)) || (isTeacher(user) && !['GET', 'HEAD', 'OPTIONS'].includes(request.method))) throw new HttpError(403, "Недостаточно прав");
   return user;
 }
 export async function readJson(request: Request) {

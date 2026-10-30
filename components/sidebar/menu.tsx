@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpenText, Goal, LogIn, LogOut, Minus, NotepadText, SquareAsterisk } from "lucide-react";
+import { LogIn, LogOut, Minus, NotepadText, SquareAsterisk } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { BookCheck, BookMarked, ChartArea, History, Mails, Users, House } from "lucide-react";
+import { BookCheck, BookMarked, ChartArea, History, Users, House } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,6 +16,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { SheetClose } from "../ui/sheet";
 import React from "react";
+import { canSupervise, isTeacher } from "@/lib/permissions";
 
 
 interface MenuProps {
@@ -34,13 +35,13 @@ export function Menu({ isOpen, isSheetMenu }: MenuProps) {
       groupLabel: "",
       menus: [
         {
-          href: "/",
+          href: session?.user && isTeacher(session.user) ? "/admin/users" : "/",
           label: "Главная",
           icon: House
         }
       ]
     },
-    ...session?.user ? [{
+    ...session?.user && !isTeacher(session.user) ? [{
       groupLabel: "Навигация",
       menus: [
         {
@@ -64,7 +65,7 @@ export function Menu({ isOpen, isSheetMenu }: MenuProps) {
           icon: SquareAsterisk
         }] : [])
       ]
-    }] : [
+    }] : session?.user ? [] : [
       {
         groupLabel: "",
         menus: [
@@ -76,8 +77,8 @@ export function Menu({ isOpen, isSheetMenu }: MenuProps) {
         ]
       }
     ],
-    ...session?.user?.admin ? [{
-      groupLabel: "Админ",
+    ...session?.user && canSupervise(session.user) ? [{
+      groupLabel: session.user.admin ? "Админ" : "Учитель",
       menus: [
         {
           label: "История",
@@ -85,11 +86,11 @@ export function Menu({ isOpen, isSheetMenu }: MenuProps) {
           icon: History,
         },
         {
-          label: "Пользователи",
+          label: session.user.admin ? "Пользователи" : "Мои ученики",
           href: "/admin/users",
           icon: Users,
         },
-        {
+        ...(session.user.admin ? [{
           label: "Задания",
           href: "/admin/tasks",
           icon: BookCheck,
@@ -98,7 +99,7 @@ export function Menu({ isOpen, isSheetMenu }: MenuProps) {
           label: "Темы",
           href: "/admin/topics",
           icon: BookMarked,
-        },
+        }] : []),
         {
           label: "Статистика",
           href: "/admin/stats",

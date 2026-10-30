@@ -3,10 +3,11 @@ import { parsePagination, pageInfo, type PageQuery } from './pagination';
 import { uniqueAnswersExpression } from '../data/statistics-utils';
 export type HistoryQuery = PageQuery;
 export type HistoryRow = { id: string; createdAt: Date; completedAt: Date | null; isComplete: boolean; taskCount: number; correctCount: number; user?: { name: string; username: string }; topicGroup?: string };
-export async function readHistory(db: Db, query: HistoryQuery, userId?: string) {
+export async function readHistory(db: Db, query: HistoryQuery, userId?: string, allowedUserIds?: string[]) {
   const parsed = parsePagination(query);
   const where: Document = userId ? { userId: new ObjectId(userId) } : {};
-  if (!userId) {
+  if (allowedUserIds !== undefined) where.userId = { $in: allowedUserIds.filter(id => !userId || id === userId).map(id => new ObjectId(id)) };
+  else if (!userId) {
     const archived = await db.collection('User').find({ isArchive: true }, { projection: { _id: 1 } }).toArray();
     if (archived.length) where.userId = { $nin: archived.map(u => u._id) };
   }

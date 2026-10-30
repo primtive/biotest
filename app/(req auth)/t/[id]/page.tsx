@@ -1,3 +1,4 @@
+import { isTeacher } from '@/lib/permissions';
 import { notFound, redirect } from 'next/navigation';
 import { ObjectId } from 'mongodb';
 import { requireUser } from '@/lib/server/access';
@@ -9,6 +10,7 @@ import { Test } from './test';
 export const metadata = { title: 'Тест' };
 export default async function TestPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser(); const { id } = await params;
+  if (isTeacher(user)) redirect(`/t/${id}/review`);
   if (!ObjectId.isValid(id) || !/^[a-f\d]{24}$/i.test(id)) notFound();
   const db = await getMongoDb(); const test = await db.collection('Test').findOne({ _id: new ObjectId(id), userId: new ObjectId(user.id) });
   if (!test) notFound(); if (test.isComplete) redirect(`/t/${id}/review`);

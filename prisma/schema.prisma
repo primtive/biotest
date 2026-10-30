@@ -22,6 +22,8 @@ model User {
   username      String              @unique
   name          String
   admin         Boolean             @default(false)
+  teacher       Boolean?            @default(false)
+  teacherGroups String[]            @default([])
   group         String              @default("")
   scores        score[]
   score         Float               @default(0)

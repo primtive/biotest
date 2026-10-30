@@ -2,7 +2,7 @@ import 'server-only';
 import prisma from '@/data/prisma';
 import { getMongoDb } from '@/data/mongo';
 import { ObjectId } from 'mongodb';
-import { requireAdmin, requireUser, HttpError, secretUserIds } from '@/lib/server/access';
+import { requireStudentAccess, requireUser, HttpError, secretUserIds } from '@/lib/server/access';
 import { uniqueAnswers } from '@/lib/grading';
 import type { Prisma } from '@prisma/client';
 
@@ -11,14 +11,14 @@ export async function getUserLastTest(userId: string) {
   return prisma.test.findFirst({ where: { userId }, select: { id: true, isComplete: true }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }] });
 }
 export async function getRecentUserScores(userId: string): Promise<Array<{ score: number; createdAt: Date; testId: string }>> {
-  await requireAdmin();
+  await requireStudentAccess(userId);
   const user = await (await getMongoDb()).collection('User').findOne({ _id: new ObjectId(userId) }, { projection: { scores: { $slice: -30 } } });
   return (user?.scores || []).map((entry: any) => ({ score: Number(entry.score), createdAt: new Date(entry.createdAt), testId: String(entry.testId || '') }));
 }
 export async function getLeaderboard(topicGroupId: string, currentUserId?: string, full = false): Promise<any[]> {
   if (full) { const user = await requireUser(); if (!user.admin && !secretUserIds.includes(user.id)) throw new HttpError(403, 'Недостаточно прав'); }
   const db = await getMongoDb();
-  const match = { admin: false, isArchive: false, topicGroupId: new ObjectId(topicGroupId) };
+  const match = { admin: false, teacher: { $ne: true }, isArchive: false, topicGroupId: new ObjectId(topicGroupId) };
   const project = { _id: 1, name: 1, score: 1 };
   const top = await db.collection('User').find({ ...match, ...(full ? {} : { score: { $ne: 0 } }) }, { projection: project }).sort({ score: -1, _id: 1 }).limit(full ? 1000 : 10).toArray();
   const rows: any[] = top.map((u, i) => ({ _id: { $oid: String(u._id) }, name: u.name, score: Number(u.score), index: i + 1 }));

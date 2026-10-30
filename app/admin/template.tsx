@@ -1,7 +1,4 @@
-import authOptions from '@/auth';
-import { Profile } from '@/components/profile';
-import { getServerSession } from 'next-auth/next';
-import { redirect } from 'next/navigation';
+import { requireStaff } from '@/lib/server/access';
 import * as React from 'react';
 
 export default async function Template({
@@ -9,8 +6,7 @@ export default async function Template({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession(authOptions)
-  if (!session || !session.user?.admin) redirect('/')
+  await requireStaff();
   return (
     <>
       {children}

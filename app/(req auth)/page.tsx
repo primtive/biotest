@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { isTeacher } from '@/lib/permissions';
 import { Leaderboard } from '@/components/leaderboard';
 import Home from './home';
 import prisma from '@/data/prisma';
@@ -8,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 export default async function Index() {
   const user = await getCurrentUser();
+  if (user && isTeacher(user)) redirect('/admin/users');
   const groups = await prisma.topicGroup.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } });
   const [topics, lastTest, percentages, data] = await Promise.all([
     user ? prisma.topic.findMany({ where: { topicGroupId: user.topicGroupId, active: true }, include: { topicGroup: true }, orderBy: [{ section: 'asc' }, { name: 'asc' }] }) : [],

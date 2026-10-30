@@ -3,7 +3,7 @@ import prisma from '@/data/prisma';
 import type { AuthOptions } from 'next-auth';
 
 export type SafeUser = {
-  id: string; name: string; username: string; admin: boolean;
+  id: string; name: string; username: string; admin: boolean; teacher: boolean | null; teacherGroups: string[];
   score: number; percent: number; topicGroupId: string; group: string; isArchive: boolean;
 };
 declare module 'next-auth' {
@@ -11,7 +11,7 @@ declare module 'next-auth' {
   interface Session { user?: SafeUser }
 }
 export const publicUserSelect = {
-  id: true, name: true, username: true, admin: true, score: true, percent: true,
+  id: true, name: true, username: true, admin: true, teacher: true, teacherGroups: true, score: true, percent: true,
   topicGroupId: true, group: true, isArchive: true,
 } as const;
 const loginMode = 'username-v1';

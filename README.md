@@ -26,6 +26,14 @@ For testing purposes, a demo account is available:
 - **Analytics & Reports**: View detailed statistics and generate reports
 - **Admin Dashboard**: Centralized admin interface for system management
 
+### Teacher Features
+- **Assigned students**: Read-only access to non-archived students in the teacher's assigned class groups
+- **Analytics & Reports**: Statistics, reports, test history, and test reviews restricted to those students
+- **Group assignment**: An administrator selects **Учитель** in the user editor and chooses **Закреплённые группы учеников**. These are student class groups, separate from ОГЭ/ЕГЭ topic groups. A teacher without assigned groups sees no students.
+- **Restricted permissions**: Teachers cannot edit accounts, change scores, manage tasks or topics, or take tests. Changes to roles and group assignments apply to existing sessions on the next request.
+
+Existing accounts remain students (or administrators) when the new optional `teacher` and `teacherGroups` fields are absent. Regenerate Prisma Client after updating the schema; no data backfill is needed.
+
 ### Technical Features
 - **Authentication**: Secure user authentication with NextAuth
 - **Real-time Updates**: Real-time data synchronization using WebSocket context
@@ -143,5 +151,7 @@ For production deployments:
 5. Push to your container registry and deploy
 
 ## Support
+
+Run `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` for static checks. After building, `npm run test:teachers` runs full-stack authorization checks using a disposable database on the configured localhost MongoDB replica set and a temporary server on port 3002. It removes its database and server on completion. Add `-- --regression` to also run the existing student/admin integration suite in the same temporary environment.
 
 For issues or questions, please create an issue in the repository.

@@ -4,6 +4,8 @@ type User = {
     name: string,
     username: string,
     admin: boolean,
+    teacher: boolean | null,
+    teacherGroups?: string[],
     isArchive: boolean
 }
 export default User

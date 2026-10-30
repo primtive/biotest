@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { dateInMoscow } from '@/data/statistics-utils';
 import { requestJson } from '@/lib/client-request';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
@@ -13,7 +13,7 @@ import ReportTable, { type UserReport } from './report-table';
 type ReportData = PaginationProps & { data: UserReport[]; from: string; to: string };
 type Filter = { from: string; to: string; topicGroup: string; completedOnly: boolean };
 const displayDate = (date: string) => date.split('-').reverse().join('.');
-export default function Reports() {
+export default function Reports({ scopeKey }: { scopeKey: string }) {
   const params = useSearchParams(), router = useRouter();
   const from = params.get('from') || dateInMoscow(new Date(Date.now() - 6 * 86400000));
   const to = params.get('to') || dateInMoscow();
@@ -26,9 +26,9 @@ export default function Reports() {
   const page = params.get('page') || '1', pageSize = params.get('pageSize') || '20';
   const sort = params.get('sort') || 'testCount', direction = params.get('direction') || 'desc';
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ['reports', from, to, topicGroup, completedOnly, page, pageSize, sort, direction],
+    queryKey: ['reports', scopeKey, from, to, topicGroup, completedOnly, page, pageSize, sort, direction],
     queryFn: ({ signal }) => requestJson<ReportData>(`/api/reports?${new URLSearchParams({ from, to, topicGroup, completedOnly: String(completedOnly), page, pageSize, sort, direction })}`, { signal }),
-    placeholderData: keepPreviousData, staleTime: 30000, refetchOnWindowFocus: false, retry: false,
+    placeholderData: (previous, query) => query?.queryKey[1] === scopeKey ? previous : undefined, staleTime: 30000, refetchOnWindowFocus: false, retry: false,
   });
   function apply(event: React.FormEvent) {
     event.preventDefault();

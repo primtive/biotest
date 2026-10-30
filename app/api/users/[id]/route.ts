@@ -4,7 +4,7 @@ import { z } from 'zod';
 import prisma from '@/data/prisma';
 import { getApiUser, apiError, parseId, idSchema, readJson, HttpError } from '@/lib/server/access';
 import { invalidateStatistics } from '@/data/statistics';
-const input = z.object({ id: idSchema.optional(), name: z.string().trim().min(1).max(160), username: z.string().trim().min(1).max(128), topicGroupId: idSchema, group: z.string().trim().max(160).default(''), isArchive: z.boolean().default(false) }).strict();
+const input = z.object({ id: idSchema.optional(), name: z.string().trim().min(1).max(160), username: z.string().trim().min(1).max(128), topicGroupId: idSchema, group: z.string().trim().max(160).default(''), isArchive: z.boolean().default(false), teacher: z.boolean().optional(), teacherGroups: z.array(z.string().trim().min(1).max(160)).max(100).optional() }).strict();
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const actor = await getApiUser(request, true); const routeId = (await props.params).id;
@@ -13,10 +13,15 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (body.id && body.id !== id) throw new HttpError(400, 'Идентификаторы не совпадают');
     if (!await prisma.topicGroup.findUnique({ where: { id: body.topicGroupId }, select: { id: true } })) throw new HttpError(400, 'Группа заданий не найдена');
     if (await prisma.user.findFirst({ where: { username: body.username, ...(id ? { id: { not: id } } : {}) }, select: { id: true } })) throw new HttpError(409, 'Логин уже занят');
-    const existing = id ? await prisma.user.findUnique({ where: { id }, select: { admin: true } }) : null;
+    const existing = id ? await prisma.user.findUnique({ where: { id }, select: { admin: true, teacher: true, teacherGroups: true } }) : null;
     if (id && !existing) throw new HttpError(404, 'Пользователь не найден');
     if (body.isArchive && (actor.id === id || existing?.admin)) throw new HttpError(409, 'Административный аккаунт нельзя архивировать здесь');
-    const { id: _id, ...data } = body;
+    const teacher = body.teacher ?? existing?.teacher ?? false;
+    const teacherGroups = [...new Set(body.teacherGroups ?? (teacher ? existing?.teacherGroups || [] : []))];
+    if (existing?.admin && teacher) throw new HttpError(400, 'Роль администратора нельзя изменить здесь');
+    if (!teacher && teacherGroups.length) throw new HttpError(400, 'Закрепить группы можно только за учителем');
+    const { id: _id, ...fields } = body;
+    const data = { ...fields, teacher, teacherGroups };
     const db = await getMongoDb();
     await db.createCollection('UsernameReservation').catch((error: any) => { if (error.code !== 48) throw error; });
     const uid = id ? new ObjectId(id) : new ObjectId();

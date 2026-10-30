@@ -1,4 +1,4 @@
-import { requireAdmin } from '@/lib/server/access';
+import { requireStaff } from '@/lib/server/access';
 import { getAdminStatistics, selectedTopicGroup, getStatisticsPeriods } from '@/data/statistics';
 import { parseAcademicPeriod } from '@/lib/academic-period';
 import { StatisticsFilter } from '@/components/statistics-filter';
@@ -7,7 +7,7 @@ import { ScoreChart } from '@/components/score-chart';
 import { Card } from '@/components/ui/card';
 export const metadata = { title: 'Статистика' };
 export default async function StatsPage({ searchParams }: { searchParams: Promise<{ period?: string; topicGroup?: string }> }) {
-  await requireAdmin(); const filter = await searchParams;
+  await requireStaff(); const filter = await searchParams;
   let period: string; try { period = parseAcademicPeriod(filter.period); selectedTopicGroup(filter.topicGroup); } catch (error) { return <p role="alert">{(error as Error).message}</p>; }
   const [stats, periods] = await Promise.all([getAdminStatistics({ ...filter, period }), getStatisticsPeriods()]);
   const values = { 'Неархивные ученики': stats.userCount, 'Доступные задания': stats.taskCount, 'Начато тестов': stats.startedCount, 'Завершено тестов': stats.completedCount, 'Активные ученики': stats.activeUsers, 'Принято ответов': stats.answeredCount, 'Правильные ответы': stats.correctCount, 'Точность, %': stats.accuracy };

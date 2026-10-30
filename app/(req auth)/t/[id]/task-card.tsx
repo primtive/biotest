@@ -2,14 +2,14 @@
 
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import Zoom from 'react-medium-image-zoom'
 import 'react-medium-image-zoom/dist/styles.css'
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { errorMessage, requestJson } from '@/lib/client-request';
 
-export default function TaskCard({ task }: { task: { html: string, id: string, topic: string, line: string, source: string } }) {
+export default function TaskCard({ task, canReport = true }: { canReport?: boolean; task: { html: string, id: string, topic: string, line: string, source: string } }) {
   const [isReported, setIsReported] = React.useState(false)
   const [open, setOpen] = React.useState(false)
   const [pending, setPending] = React.useState(false)
@@ -43,7 +43,7 @@ export default function TaskCard({ task }: { task: { html: string, id: string, t
           Тема: {task?.topic}
         </h2>
       </div>
-      {isReported ?
+      {canReport && (isReported ?
         <div className='flex gap-2 items-center text-muted-foreground text-sm'>
           <CheckCircle /> Жалоба отправлена
         </div>
@@ -64,7 +64,7 @@ export default function TaskCard({ task }: { task: { html: string, id: string, t
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </>
+        </>)
       }
     </div>
     <Zoom>

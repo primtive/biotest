@@ -1,8 +1,7 @@
+import { isTeacher } from '@/lib/permissions';
 import { requireUser, secretUserIds } from "@/lib/server/access";
-import authOptions from '@/auth';
 import topicGroups from '@/data/topicGroups';
 import { getLeaderboard } from '@/data/users';
-import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import * as React from 'react';
 import { FullLeaderboard } from './full-leaderboard';
@@ -14,7 +13,7 @@ export const metadata = {
 
 export default async function SecretPage() {
   const user = await requireUser();
-  if (!secretUserIds.includes(user.id)) redirect('/');
+  if (isTeacher(user) || !secretUserIds.includes(user.id)) redirect('/');
   const session = { user };
 
   const topicGroupId = session?.user?.topicGroupId
