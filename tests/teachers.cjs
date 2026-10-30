@@ -98,7 +98,17 @@ function containsOnly(response, allowed, denied) {
     // Clear persistent Next.js report caches left by an earlier test database.
     const initial = await request(`/api/users/${teacherA._id}`, adminCookie, { name: teacherA.name, username: teacherA.username, topicGroupId: String(teacherA.topicGroupId), group: teacherA.group, isArchive: false, teacher: true, teacherGroups: teacherA.teacherGroups });
     assert.equal(initial.status, 200);
-    let response = await request('/api/auth/session', aCookie);
+    let response = await request('/admin/users', adminCookie);
+    check('user list sorts administrators, then teachers, then students, with archive last', () => {
+      assert.equal(response.status, 200);
+      const position = user => response.text.indexOf(`href="/admin/users/${encodeURIComponent(user.username)}"`);
+      const adminPosition = position(admin), teachers = [teacherA, teacherB, empty].map(position), students = [a, modern, b].map(position);
+      assert.ok([adminPosition, ...teachers, ...students, position(archived)].every(index => index >= 0));
+      assert.ok(adminPosition < Math.min(...teachers));
+      assert.ok(Math.max(...teachers) < Math.min(...students));
+      assert.ok(Math.max(...students) < position(archived));
+    });
+    response = await request('/api/auth/session', aCookie);
     check('session loads teacher role and assigned groups from the database', () => { assert.equal(response.json.user.teacher, true); assert.deepEqual(response.json.user.teacherGroups, ['Class A']); });
     response = await request('/api/auth/session', studentCookie);
     check('legacy accounts without teacher fields keep working', () => assert.equal(response.json.user.id, String(a._id)));

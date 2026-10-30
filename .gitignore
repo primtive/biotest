@@ -45,3 +45,6 @@ docker-compose.yml
 mongo-keyfile
 
 .local/
+
+# Python deployment checks
+__pycache__/

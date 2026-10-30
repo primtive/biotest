@@ -1,14 +1,24 @@
-name: Check and publish Docker image
+name: Check, publish and deploy
 on:
   pull_request:
   push:
     branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: biotest-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -17,24 +27,91 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      - run: python3 -m unittest discover -s tests -p 'test_deploy.py'
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: '1'
           DATABASE_URL: mongodb://127.0.0.1:27017/biotest
           NEXTAUTH_URL: http://localhost:3000
           NEXTAUTH_SECRET: ci-build-only-not-a-runtime-secret
+
   publish:
     needs: check
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        id: build
         with:
           context: .
+          platforms: linux/amd64
           push: true
-          tags: primtive/biotest:latest
+          tags: |
+            primtive/biotest:latest
+            primtive/biotest:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/primtive/biotest
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: production
+      url: https://orenbio.ru
+    concurrency:
+      group: biotest-production
+      cancel-in-progress: false
+    steps:
+      - name: Check that this commit is still master
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$GITHUB_SHA" == "$(gh api "repos/$GITHUB_REPOSITORY/commits/master" --jq .sha)" ]]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'current=false' >> "$GITHUB_OUTPUT"
+            echo 'Skipping a superseded commit.'
+          fi
+      - name: Back up, deploy and verify production
+        if: steps.target.outputs.current == 'true'
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          IMAGE_DIGEST: ${{ needs.publish.outputs.digest }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          task_key="$(mktemp)"
+          task_hosts="$(mktemp)"
+          trap 'rm -f "$task_key" "$task_hosts"' EXIT
+          chmod 600 "$task_key" "$task_hosts"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$task_key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$task_hosts"
+          ssh -i "$task_key" -p "$DEPLOY_PORT" \
+            -o BatchMode=yes -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_hosts" \
+            -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
+            "$DEPLOY_USER@$DEPLOY_HOST" "deploy $GITHUB_SHA $IMAGE_DIGEST"
+          {
+            echo 'Deployed to https://orenbio.ru'
+            echo "Commit: $GITHUB_SHA"
+            echo "Image: primtive/biotest@$IMAGE_DIGEST"
+          } >> "$GITHUB_STEP_SUMMARY"
