@@ -123,10 +123,6 @@ const UserTable = (data: { users: Array<User>, groups: string[], canManage: bool
         ),
       },
       ...(data.canManage ? [{
-        id: 'teacherGroups',
-        header: 'Закреплённые группы',
-        cell: ({ row }) => row.original.teacher ? row.original.teacherGroups?.join(', ') || 'Не назначены' : '—',
-      }, {
         accessorKey: "id",
         header: '',
         cell: ({ row }) => (
